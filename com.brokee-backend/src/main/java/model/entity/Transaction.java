@@ -56,9 +56,9 @@ public class Transaction extends PanacheEntityBase {
     @Column(precision = 9, scale = 6)
     private BigDecimal longitude;
 
-    @Column(length = 255)
-    private String merchant;
-
     @Column(length = 500)
     private String note;
+
+    @Column(length = 255)
+    public String locationName;
 }

@@ -41,10 +41,6 @@ public class Budget extends PanacheEntityBase {
             insertable = false, updatable = false)
     private Category category;
 
-    @Id
-    @Column(name = "month_key", length = 7)
-    private String monthKey;
-
     @Column(nullable = false, precision = 18, scale = 2)
     private BigDecimal amount;
 
@@ -56,6 +52,5 @@ public class Budget extends PanacheEntityBase {
         private static final long serialVersionUID = 1L;
         public String userSub;
         public Long categoryId;
-        public String monthKey;
     }
 }
