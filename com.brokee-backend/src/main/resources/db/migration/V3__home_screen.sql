@@ -80,3 +80,11 @@ VALUES ('Groceries'),
 
 INSERT INTO categories (name)
 VALUES ('Revolut');
+
+CREATE TABLE savings_goal
+(
+    user_sub    VARCHAR(36)    NOT NULL PRIMARY KEY,
+    target_amt  DECIMAL(18, 2) NOT NULL,
+    target_date DATE           NOT NULL
+);
+
