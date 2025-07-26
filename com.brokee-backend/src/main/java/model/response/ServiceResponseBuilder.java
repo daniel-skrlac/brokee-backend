@@ -1,7 +1,5 @@
 package model.response;
 
-import java.util.List;
-
 public class ServiceResponseBuilder<T> {
     private final ServiceResponse<T> response = new ServiceResponse<>();
 

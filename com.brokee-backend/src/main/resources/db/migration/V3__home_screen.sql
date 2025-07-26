@@ -1,0 +1,49 @@
+CREATE TABLE tx
+(
+    id          BIGINT IDENTITY PRIMARY KEY,
+    user_sub    VARCHAR(60)    NOT NULL,
+    type        CHAR(1)        NOT NULL CHECK (type IN ('E', 'I')),
+    amount      DECIMAL(18, 2) NOT NULL,
+    category_id BIGINT         NOT NULL,
+    tx_time     DATETIME2      NOT NULL DEFAULT SYSUTCDATETIME(),
+    latitude    DECIMAL(9, 6) NULL,
+    longitude   DECIMAL(9, 6) NULL,
+    merchant    VARCHAR(255),
+    note        VARCHAR(500)
+);
+
+CREATE TABLE category
+(
+    id   BIGINT IDENTITY PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE budget
+(
+    user_sub    VARCHAR(36)    NOT NULL,
+    category_id BIGINT         NOT NULL,
+    month_key   CHAR(7)        NOT NULL,
+    amount      DECIMAL(18, 2) NOT NULL,
+    CONSTRAINT pk_budget PRIMARY KEY (user_sub, category_id, month_key)
+);
+
+CREATE TABLE planned_tx
+(
+    id        BIGINT IDENTITY PRIMARY KEY,
+    user_sub  VARCHAR(36)    NOT NULL,
+    title     VARCHAR(255)   NOT NULL,
+    amount    DECIMAL(18, 2) NOT NULL,
+    due_date  DATE           NOT NULL,
+    auto_book BIT            NOT NULL DEFAULT 0
+);
+
+ALTER TABLE tx
+    ADD CONSTRAINT fk_tx_category
+        FOREIGN KEY (category_id)
+            REFERENCES category(id);
+
+ALTER TABLE budget
+    ADD CONSTRAINT fk_budget_category
+        FOREIGN KEY (category_id)
+            REFERENCES category(id);
+

@@ -1,0 +1,56 @@
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      SA_PASSWORD: "Str0ng!P@ssw0rd!"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "11433:1433"
+
+  mssql-init:
+    image: mcr.microsoft.com/mssql-tools
+    depends_on:
+      - mssql
+    entrypoint: >
+      bash -c "
+        for i in {1..30}; do
+          /opt/mssql-tools/bin/sqlcmd -S mssql -U sa -P 'Str0ng!P@ssw0rd!' -Q 'SELECT 1' && break
+          echo 'Waiting for SQL Server to be ready...'
+          sleep 2
+        done &&
+        /opt/mssql-tools/bin/sqlcmd -S mssql -U sa -P 'Str0ng!P@ssw0rd!' -Q \"IF DB_ID('brokee') IS NULL CREATE DATABASE brokee\"
+      "
+
+  keycloak-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: kcpassword
+    ports:
+      - "5433:5432"
+    volumes:
+      - keycloak-db-data:/var/lib/postgresql/data
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0
+    command: start-dev --import-realm
+    environment:
+      KC_DB: postgres
+      KC_DB_URL_HOST: keycloak-db
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: kcpassword
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_STRICT: false
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    volumes:
+      - ./realms:/opt/keycloak/data/import
+    ports:
+      - "8081:8080"
+    depends_on:
+      - keycloak-db
+
+volumes:
+  keycloak-db-data:
