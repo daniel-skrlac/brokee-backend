@@ -5,6 +5,7 @@ import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import io.quarkus.panache.common.Page;
 import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.persistence.Tuple;
 import jakarta.persistence.TypedQuery;
 import model.entity.Transaction;
 
@@ -141,6 +142,74 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
                 .stream()
                 .map(Transaction::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public List<Tuple> findSpendingVsIncomeByYear(String userSub, int year) {
+        return getEntityManager().createQuery(
+                        """
+                                SELECT 
+                                  FUNCTION('FORMAT', t.txTime, 'yyyy-MM') AS month,
+                                  SUM(CASE WHEN t.type = 'E' THEN t.amount ELSE 0 END) AS expenses,
+                                  SUM(CASE WHEN t.type = 'I' THEN t.amount ELSE 0 END) AS income
+                                FROM Transaction t
+                                WHERE t.userSub = :user AND FUNCTION('YEAR', t.txTime) = :yr
+                                GROUP BY FUNCTION('FORMAT', t.txTime, 'yyyy-MM')
+                                ORDER BY month
+                                """, Tuple.class)
+                .setParameter("user", userSub)
+                .setParameter("yr", year)
+                .getResultList();
+    }
+
+    public List<Tuple> findCategoryBreakdown(String userSub, String monthKey) {
+        return getEntityManager().createQuery(
+                        """
+                                SELECT 
+                                  c.name AS category,
+                                  SUM(t.amount) AS amount
+                                FROM Transaction t
+                                JOIN Category c ON t.categoryId = c.id
+                                WHERE t.userSub = :user
+                                  AND FUNCTION('FORMAT', t.txTime, 'yyyy-MM') = :mk
+                                  AND t.type = 'E'
+                                GROUP BY c.name
+                                ORDER BY amount DESC
+                                """, Tuple.class)
+                .setParameter("user", userSub)
+                .setParameter("mk", monthKey)
+                .getResultList();
+    }
+
+    public List<Tuple> findTopLocations(String userSub, int limit) {
+        return getEntityManager().createQuery(
+                        """
+                                SELECT 
+                                  t.latitude       AS latitude,
+                                  t.longitude      AS longitude,
+                                  t.locationName   AS label,
+                                  SUM(t.amount)    AS amount
+                                FROM Transaction t
+                                WHERE t.userSub = :user
+                                  AND t.type = 'E'
+                                GROUP BY t.latitude, t.longitude, t.locationName
+                                ORDER BY SUM(t.amount) DESC
+                                """, Tuple.class)
+                .setParameter("user", userSub)
+                .setMaxResults(limit)
+                .getResultList();
+    }
+
+    public Tuple findTotalExpensesAndIncome(String userSub) {
+        return getEntityManager().createQuery(
+                        """
+                                SELECT
+                                  SUM(CASE WHEN t.type = 'E' THEN t.amount ELSE 0 END) AS totalExpenses,
+                                  SUM(CASE WHEN t.type = 'I' THEN t.amount ELSE 0 END) AS totalIncome
+                                FROM Transaction t
+                                WHERE t.userSub = :user
+                                """, Tuple.class)
+                .setParameter("user", userSub)
+                .getSingleResult();
     }
 
     public record DailySum(LocalDate day, BigDecimal total) {

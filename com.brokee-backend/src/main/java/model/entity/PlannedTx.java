@@ -3,9 +3,13 @@ package model.entity;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -30,11 +34,17 @@ public class PlannedTx extends PanacheEntityBase {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
 
+    @Column(name="category_id", nullable=false)
+    public Long categoryId;
+
     @Column(name = "user_sub", nullable = false, length = 36)
     public String userSub;
 
     @Column(nullable = false, length = 255)
     public String title;
+
+    @Column(nullable = false, length = 1)
+    private String type;
 
     @Column(nullable = false, precision = 18, scale = 2)
     public BigDecimal amount;

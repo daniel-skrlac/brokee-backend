@@ -42,10 +42,8 @@ public class Transaction extends PanacheEntityBase {
     @Column(nullable = false, precision = 18, scale = 2)
     private BigDecimal amount;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_tx_category"))
-    private Category category;
+    @Column(name="category_id", nullable=false)
+    public Long categoryId;
 
     @Column(name = "tx_time", nullable = false)
     private OffsetDateTime txTime;

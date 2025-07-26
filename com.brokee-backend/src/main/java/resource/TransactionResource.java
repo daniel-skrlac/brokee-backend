@@ -4,13 +4,26 @@ import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PATCH;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import model.helper.PagedResponseDTO;
 import model.home.FullTxRequestDTO;
 import model.home.QuickTxRequestDTO;
 import model.home.TxResponseDTO;
 import model.response.ServiceResponse;
+import model.tracking.CategoryBreakdownDTO;
+import model.tracking.LocationDTO;
+import model.tracking.SpendingVsIncomeDTO;
 import service.TransactionService;
 
 import java.math.BigDecimal;
@@ -24,14 +37,17 @@ import java.util.Map;
 @Authenticated
 public class TransactionResource {
 
-    @Inject TransactionService txService;
-    @Inject SecurityIdentity   identity;
+    @Inject
+    TransactionService txService;
+    @Inject
+    SecurityIdentity identity;
 
     private String currentUser() {
         return identity.getPrincipal().getName();
     }
 
-    @GET @Path("/recent")
+    @GET
+    @Path("/recent")
     public Response recent(@QueryParam("limit") @DefaultValue("5") int limit) {
         ServiceResponse<List<TxResponseDTO>> resp =
                 txService.recent(currentUser(), limit);
@@ -48,17 +64,19 @@ public class TransactionResource {
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
 
-    @GET @Path("/balance")
+    @GET
+    @Path("/balance")
     public Response balance() {
         ServiceResponse<BigDecimal> resp =
                 txService.getBalance(currentUser());
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
 
-    @GET @Path("/range")
+    @GET
+    @Path("/range")
     public Response byDateRange(
             @QueryParam("from") String from,
-            @QueryParam("to")   String to
+            @QueryParam("to") String to
     ) {
         OffsetDateTime f = OffsetDateTime.parse(from);
         OffsetDateTime t = OffsetDateTime.parse(to);
@@ -67,7 +85,8 @@ public class TransactionResource {
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
 
-    @GET @Path("/graph/daily")
+    @GET
+    @Path("/graph/daily")
     public Response dailyGraph(
             @QueryParam("days") @DefaultValue("7") int days
     ) {
@@ -76,23 +95,53 @@ public class TransactionResource {
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
 
-    @GET @Path("/graph/monthly")
+    @GET
+    @Path("/graph/monthly")
     public Response monthlyGraph(
-            @QueryParam("year") @DefaultValue("#{T(java.time.LocalDate).now().year}") int year
+            @QueryParam("year") Integer year
     ) {
+        if (year == null) {
+            year = java.time.LocalDate.now().getYear();
+        }
         ServiceResponse<Map<String, BigDecimal>> resp =
                 txService.findMonthlyExpenses(currentUser(), year);
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
 
-    @GET @Path("/{id}")
+    @GET
+    @Path("/spending-vs-income")
+    public Response spendingVsIncome(@QueryParam("year") @DefaultValue("2025") int year) {
+        ServiceResponse<List<SpendingVsIncomeDTO>> resp =
+                txService.spendingVsIncome(currentUser(), year);
+        return Response.status(resp.getStatusCode()).entity(resp).build();
+    }
+
+    @GET
+    @Path("/category-breakdown")
+    public Response categoryBreakdown(@QueryParam("month") String monthKey) {
+        ServiceResponse<List<CategoryBreakdownDTO>> resp =
+                txService.categoryBreakdown(currentUser(), monthKey);
+        return Response.status(resp.getStatusCode()).entity(resp).build();
+    }
+
+    @GET
+    @Path("/top-locations")
+    public Response topLocations(@QueryParam("limit") @DefaultValue("3") int limit) {
+        ServiceResponse<List<LocationDTO>> resp =
+                txService.topLocations(currentUser(), limit);
+        return Response.status(resp.getStatusCode()).entity(resp).build();
+    }
+
+    @GET
+    @Path("/{id}")
     public Response getById(@PathParam("id") Long id) {
         ServiceResponse<TxResponseDTO> resp =
                 txService.findById(currentUser(), id);
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
 
-    @POST @Path("/quick")
+    @POST
+    @Path("/quick")
     public Response quickAdd(@Valid QuickTxRequestDTO dto) {
         ServiceResponse<TxResponseDTO> resp =
                 txService.quickAdd(currentUser(), dto);
@@ -106,7 +155,8 @@ public class TransactionResource {
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
 
-    @PATCH @Path("/{id}")
+    @PATCH
+    @Path("/{id}")
     public Response patch(
             @PathParam("id") Long id,
             @Valid FullTxRequestDTO dto
@@ -116,7 +166,8 @@ public class TransactionResource {
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
 
-    @DELETE @Path("/{id}")
+    @DELETE
+    @Path("/{id}")
     public Response delete(@PathParam("id") Long id) {
         ServiceResponse<Boolean> resp =
                 txService.delete(currentUser(), id);

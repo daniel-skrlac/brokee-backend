@@ -13,6 +13,9 @@ import model.home.QuickTxRequestDTO;
 import model.home.TxResponseDTO;
 import model.response.ServiceResponse;
 import model.response.ServiceResponseDirector;
+import model.tracking.CategoryBreakdownDTO;
+import model.tracking.LocationDTO;
+import model.tracking.SpendingVsIncomeDTO;
 import repository.TransactionRepository;
 
 import java.math.BigDecimal;
@@ -46,6 +49,48 @@ public class TransactionService {
                 txMap.entityToResponse(t),
                 "OK"
         );
+    }
+
+    public ServiceResponse<List<SpendingVsIncomeDTO>> spendingVsIncome(String userSub, int year) {
+        List<SpendingVsIncomeDTO> list = txRepo
+                .findSpendingVsIncomeByYear(userSub, year)
+                .stream()
+                .map(t -> new SpendingVsIncomeDTO(
+                        t.get("month", String.class),
+                        t.get("expenses", BigDecimal.class),
+                        t.get("income", BigDecimal.class)
+                ))
+                .collect(Collectors.toList());
+
+        return ServiceResponseDirector.successOk(list, "OK");
+    }
+
+    public ServiceResponse<List<CategoryBreakdownDTO>> categoryBreakdown(String userSub, String monthKey) {
+        List<CategoryBreakdownDTO> list = txRepo
+                .findCategoryBreakdown(userSub, monthKey)
+                .stream()
+                .map(t -> new CategoryBreakdownDTO(
+                        t.get("category", String.class),
+                        t.get("amount", BigDecimal.class)
+                ))
+                .collect(Collectors.toList());
+
+        return ServiceResponseDirector.successOk(list, "OK");
+    }
+
+    public ServiceResponse<List<LocationDTO>> topLocations(String userSub, int limit) {
+        List<LocationDTO> list = txRepo
+                .findTopLocations(userSub, limit)
+                .stream()
+                .map(t -> new LocationDTO(
+                        t.get("latitude", BigDecimal.class),
+                        t.get("longitude", BigDecimal.class),
+                        t.get("label", String.class),
+                        t.get("amount", BigDecimal.class)
+                ))
+                .collect(Collectors.toList());
+
+        return ServiceResponseDirector.successOk(list, "OK");
     }
 
     public ServiceResponse<List<TxResponseDTO>> recent(String userSub, int limit) {
