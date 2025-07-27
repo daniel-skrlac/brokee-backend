@@ -30,4 +30,13 @@ public class CategoryRepository implements PanacheRepository<Category> {
                 .findFirst()
                 .orElse(null);
     }
+
+    public String findCategoryNameById(Long categoryId) {
+        return em.createQuery("""
+            SELECT c.name FROM Category c
+            WHERE c.id = :id
+            """, String.class)
+                .setParameter("id", categoryId)
+                .getSingleResult();
+    }
 }

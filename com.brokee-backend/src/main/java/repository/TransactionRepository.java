@@ -267,6 +267,35 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
                 .executeUpdate();
     }
 
+    public List<Transaction> findRecentExpenses(String userSub, LocalDate sinceDate) {
+        return find("userSub = ?1 and type = 'E' and txTime >= ?2",
+                Sort.by("txTime").descending(),
+                userSub, sinceDate.atStartOfDay())
+                .list();
+    }
+
+    public BigDecimal sumExpensesForCategorySince(String userSub, Long categoryId, LocalDate fromDate) {
+        return find("userSub = ?1 and categoryId = ?2 and type = 'E' and txTime >= ?3",
+                userSub, categoryId, fromDate.atStartOfDay())
+                .stream()
+                .map(Transaction::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public BigDecimal sumByCategory(String userSub, String categoryName) {
+        return em.createQuery("""
+            SELECT COALESCE(SUM(t.amount), 0)
+            FROM Transaction t
+            JOIN Category c ON t.categoryId = c.id
+            WHERE t.userSub = :userSub
+              AND t.type = 'I'
+              AND c.name = :categoryName
+            """, BigDecimal.class)
+                .setParameter("userSub", userSub)
+                .setParameter("categoryName", categoryName)
+                .getSingleResult();
+    }
+
     public record DailySum(LocalDate day, BigDecimal total) {
     }
 

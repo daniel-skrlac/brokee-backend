@@ -16,6 +16,8 @@ import model.response.ServiceResponseDirector;
 import model.tracking.CategoryBreakdownDTO;
 import model.tracking.LocationDTO;
 import model.tracking.SpendingVsIncomeDTO;
+import repository.BudgetRepository;
+import repository.CategoryRepository;
 import repository.TransactionRepository;
 
 import java.math.BigDecimal;
@@ -38,7 +40,16 @@ public class TransactionService {
     TransactionRepository txRepo;
 
     @Inject
+    BudgetRepository budgetRepository;
+
+    @Inject
+    CategoryRepository categoryRepository;
+
+    @Inject
     TransactionMapper txMap;
+
+    @Inject
+    NotificationService notifier;
 
     public ServiceResponse<TxResponseDTO> findById(String userSub, Long id) {
         Transaction t = txRepo.findByIdAndUser(userSub, id);
@@ -211,6 +222,30 @@ public class TransactionService {
                 t.getLongitude().doubleValue()
         ));
         t.persist();
+
+        if (t.getType().equals("E") &&
+                t.getAmount().compareTo(new BigDecimal("1000.00")) > 0 &&
+                (t.getNote() == null || t.getNote().isBlank())) {
+
+            String catName = categoryRepository.findCategoryNameById(t.getCategoryId());
+            notifier.sendToUser(
+                    userSub,
+                    "💸 Large Transaction",
+                    "Large transaction detected: " + t.getAmount() + " on " + catName + "."
+            );
+        }
+
+        LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
+        BigDecimal spent = txRepo.sumExpensesForCategorySince(userSub, t.getCategoryId(), startOfMonth);
+        BigDecimal budget = budgetRepository.findAmountByUserAndCategory(userSub, t.getCategoryId());
+        if (budget != null && spent.compareTo(budget) > 0) {
+            String catName = categoryRepository.findCategoryNameById(t.getCategoryId());
+            notifier.sendToUser(
+                    userSub,
+                    "🚨 Budget Exceeded",
+                    "You've exceeded your " + catName + " budget!"
+            );
+        }
 
         return ServiceResponseDirector.successCreated(
                 txMap.entityToResponse(t),
