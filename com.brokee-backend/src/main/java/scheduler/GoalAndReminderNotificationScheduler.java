@@ -35,7 +35,7 @@ public class GoalAndReminderNotificationScheduler {
     @Inject
     BudgetRepository budgetRepo;
 
-    @Scheduled(cron = "0 7 * * *")
+    @Scheduled(cron = "0 7  * * * ?")
     public void dailyGoalAndReminderNotifications() {
         List<String> users = budgetRepo.findAllUsersWithBudgets();
 
