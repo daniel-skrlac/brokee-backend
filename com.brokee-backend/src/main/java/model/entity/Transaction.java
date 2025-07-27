@@ -3,16 +3,11 @@ package model.entity;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -20,32 +15,39 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
-@EqualsAndHashCode(callSuper = true)
-@Entity
-@Table(name = "tx")
-@Data
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name = "tx")
 public class Transaction extends PanacheEntityBase {
     @Id
-    @GeneratedValue
-    public Long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(name = "user_sub", nullable = false, length = 60)
     private String userSub;
 
-    @Column(nullable = false, length = 1)
+    @Column(
+            name = "type",
+            nullable = false,
+            length = 1,
+            columnDefinition = "CHAR(1) CHECK (type IN ('E','I'))"
+    )
     private String type;
 
     @Column(nullable = false, precision = 18, scale = 2)
     private BigDecimal amount;
 
-    @Column(name="category_id", nullable=false)
-    public Long categoryId;
+    @Column(name = "category_id", nullable = false)
+    private Long categoryId;
 
-    @Column(name = "tx_time", nullable = false)
+    @Column(
+            name = "tx_time",
+            nullable = false,
+            columnDefinition = "DATETIME2"
+    )
     private OffsetDateTime txTime;
 
     @Column(precision = 9, scale = 6)
@@ -57,6 +59,6 @@ public class Transaction extends PanacheEntityBase {
     @Column(length = 500)
     private String note;
 
-    @Column(length = 255)
-    public String locationName;
+    @Column(name = "location_name", length = 255)
+    private String locationName;
 }

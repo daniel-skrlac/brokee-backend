@@ -9,7 +9,7 @@ public record TxResponseDTO(
         BigDecimal amount,
         Long categoryId,
         OffsetDateTime txTime,
-        String merchant,
+        String locationName,
         String note
 ) {
 }

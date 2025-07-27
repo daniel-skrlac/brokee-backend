@@ -3,17 +3,11 @@ package model.entity;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,8 +15,6 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-@EqualsAndHashCode(callSuper = true)
-@Data
 @Getter
 @Setter
 @NoArgsConstructor
@@ -32,26 +24,31 @@ import java.time.LocalDate;
 public class PlannedTx extends PanacheEntityBase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long id;
+    private Long id;
 
-    @Column(name="category_id", nullable=false)
-    public Long categoryId;
+    @Column(name = "category_id", nullable = false)
+    private Long categoryId;
 
     @Column(name = "user_sub", nullable = false, length = 36)
-    public String userSub;
+    private String userSub;
 
     @Column(nullable = false, length = 255)
-    public String title;
+    private String title;
 
-    @Column(nullable = false, length = 1)
+    @Column(
+            name            = "type",
+            nullable        = false,
+            length          = 1,
+            columnDefinition = "CHAR(1) CHECK (type IN ('E','I'))"
+    )
     private String type;
 
     @Column(nullable = false, precision = 18, scale = 2)
-    public BigDecimal amount;
+    private BigDecimal amount;
 
     @Column(name = "due_date", nullable = false)
-    public LocalDate dueDate;
+    private LocalDate dueDate;
 
     @Column(name = "auto_book", nullable = false)
-    public Boolean autoBook;
+    private Boolean autoBook;
 }

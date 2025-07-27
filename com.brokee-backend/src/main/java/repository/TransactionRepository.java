@@ -5,6 +5,8 @@ import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import io.quarkus.panache.common.Page;
 import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.Tuple;
 import jakarta.persistence.TypedQuery;
 import model.entity.Transaction;
@@ -17,6 +19,9 @@ import java.util.List;
 
 @ApplicationScoped
 public class TransactionRepository implements PanacheRepository<Transaction> {
+
+    @Inject
+    EntityManager em;
 
     public Transaction create(Transaction tx) {
         persist(tx);
@@ -37,10 +42,6 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
 
     public BigDecimal getTotalExpenses(String userSub) {
         return sumByType(userSub, "E");
-    }
-
-    public BigDecimal getBalance(String userSub) {
-        return getTotalIncome(userSub).subtract(getTotalExpenses(userSub));
     }
 
     public List<Transaction> findRecent(String userSub, int limit) {
@@ -210,6 +211,60 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
                                 """, Tuple.class)
                 .setParameter("user", userSub)
                 .getSingleResult();
+    }
+
+    public BigDecimal getLastSnapshotAmount(String userSub, Long categoryId, String note) {
+        return em.createQuery("""
+                        SELECT t.amount FROM tx t
+                        WHERE t.userSub = :userSub
+                          AND t.category.id = :categoryId
+                          AND t.note = :note
+                        ORDER BY t.txTime DESC
+                        """, BigDecimal.class)
+                .setParameter("userSub", userSub)
+                .setParameter("categoryId", categoryId)
+                .setParameter("note", note)
+                .setMaxResults(1)
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
+    }
+
+    public boolean snapshotExists(String userSub, Long categoryId, String note) {
+        return em.createQuery("""
+                        SELECT COUNT(t) FROM tx t
+                        WHERE t.userSub = :userSub AND t.category.id = :categoryId AND t.note = :note
+                        """, Long.class)
+                .setParameter("userSub", userSub)
+                .setParameter("categoryId", categoryId)
+                .setParameter("note", note)
+                .getSingleResult() > 0;
+    }
+
+    public void insertInvestmentSnapshot(String userSub, BigDecimal amount, Long categoryId, LocalDateTime timestamp, String note) {
+        em.createNativeQuery("""
+                        INSERT INTO tx (user_sub, type, amount, category_id, tx_time, note)
+                        VALUES (:userSub, 'I', :amount, :categoryId, :timestamp, :note)
+                        """)
+                .setParameter("userSub", userSub)
+                .setParameter("amount", amount)
+                .setParameter("categoryId", categoryId)
+                .setParameter("timestamp", timestamp)
+                .setParameter("note", note)
+                .executeUpdate();
+    }
+
+    public void updateInvestmentSnapshot(String userSub, Long categoryId, String note, BigDecimal newAmount, LocalDateTime newTime) {
+        em.createQuery("""
+                        UPDATE tx t SET t.amount = :newAmount, t.txTime = :newTime
+                        WHERE t.userSub = :userSub AND t.category.id = :categoryId AND t.note = :note
+                        """)
+                .setParameter("newAmount", newAmount)
+                .setParameter("newTime", newTime)
+                .setParameter("userSub", userSub)
+                .setParameter("categoryId", categoryId)
+                .setParameter("note", note)
+                .executeUpdate();
     }
 
     public record DailySum(LocalDate day, BigDecimal total) {

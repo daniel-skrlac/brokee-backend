@@ -5,8 +5,8 @@
   "defaultSignatureAlgorithm" : "RS256",
   "revokeRefreshToken" : false,
   "refreshTokenMaxReuse" : 0,
-  "accessTokenLifespan" : 300,
-  "accessTokenLifespanForImplicitFlow" : 900,
+  "accessTokenLifespan" : 300000300,
+  "accessTokenLifespanForImplicitFlow" : 30000000,
   "ssoSessionIdleTimeout" : 1800,
   "ssoSessionMaxLifespan" : 36000,
   "ssoSessionIdleTimeoutRememberMe" : 0,
@@ -18,16 +18,16 @@
   "clientSessionMaxLifespan" : 0,
   "clientOfflineSessionIdleTimeout" : 0,
   "clientOfflineSessionMaxLifespan" : 0,
-  "accessCodeLifespan" : 60,
+  "accessCodeLifespan" : 30000000,
   "accessCodeLifespanUserAction" : 300,
   "accessCodeLifespanLogin" : 1800,
   "actionTokenGeneratedByAdminLifespan" : 43200,
-  "actionTokenGeneratedByUserLifespan" : 300,
-  "oauth2DeviceCodeLifespan" : 600,
-  "oauth2DevicePollingInterval" : 5,
+  "actionTokenGeneratedByUserLifespan" : 30000000,
+  "oauth2DeviceCodeLifespan" : 30000000,
+  "oauth2DevicePollingInterval" : 500000,
   "enabled" : true,
   "sslRequired" : "external",
-  "registrationAllowed" : false,
+  "registrationAllowed" : true,
   "registrationEmailAsUsername" : false,
   "rememberMe" : false,
   "verifyEmail" : false,
@@ -1792,20 +1792,49 @@
   "dockerAuthenticationFlow" : "docker auth",
   "attributes" : {
     "cibaBackchannelTokenDeliveryMode" : "poll",
-    "cibaExpiresIn" : "120",
     "cibaAuthRequestedUserHint" : "login_hint",
-    "oauth2DeviceCodeLifespan" : "600",
-    "oauth2DevicePollingInterval" : "5",
-    "parRequestUriLifespan" : "60",
+    "oauth2DevicePollingInterval" : "500000",
+    "clientOfflineSessionMaxLifespan" : "0",
+    "clientSessionIdleTimeout" : "0",
+    "actionTokenGeneratedByUserLifespan.verify-email" : "",
+    "actionTokenGeneratedByUserLifespan.idp-verify-account-via-email" : "",
+    "clientOfflineSessionIdleTimeout" : "0",
+    "actionTokenGeneratedByUserLifespan.execute-actions" : "",
     "cibaInterval" : "5",
-    "realmReusableOtpCode" : "false"
+    "realmReusableOtpCode" : "false",
+    "cibaExpiresIn" : "120",
+    "oauth2DeviceCodeLifespan" : "30000000",
+    "parRequestUriLifespan" : "60",
+    "clientSessionMaxLifespan" : "0",
+    "shortVerificationUri" : "",
+    "actionTokenGeneratedByUserLifespan.reset-credentials" : ""
   },
   "keycloakVersion" : "23.0.7",
   "userManagedAccessAllowed" : false,
   "clientProfiles" : {
-    "profiles" : [ ]
+    "profiles" : [ {
+      "name" : "brokee",
+      "description" : "brokee",
+      "executors" : [ ]
+    }, {
+      "name" : "brokee‑frontend‑profile",
+      "description" : "brokee‑frontend‑profile",
+      "executors" : [ ]
+    } ]
   },
   "clientPolicies" : {
-    "policies" : [ ]
+    "policies" : [ {
+      "name" : "brokee",
+      "description" : "brokee",
+      "enabled" : true,
+      "conditions" : [ {
+        "condition" : "client-access-type",
+        "configuration" : {
+          "is-negative-logic" : false,
+          "type" : [ "public" ]
+        }
+      } ],
+      "profiles" : [ "fapi-1-baseline", "fapi-1-advanced", "fapi-ciba", "fapi-2-security-profile", "fapi-2-message-signing", "brokee" ]
+    } ]
   }
 }

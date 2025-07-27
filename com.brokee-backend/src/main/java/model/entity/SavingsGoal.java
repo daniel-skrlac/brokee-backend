@@ -5,20 +5,28 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "savings_goal")
 public class SavingsGoal extends PanacheEntityBase {
     @Id
     @Column(name = "user_sub", length = 36)
-    public String userSub;
+    private String userSub;
 
     @Column(name = "target_amt", nullable = false, precision = 18, scale = 2)
-    public BigDecimal targetAmt;
+    private BigDecimal targetAmt;
 
     @Column(name = "target_date", nullable = false)
-    public LocalDate targetDate;
+    private LocalDate targetDate;
 }

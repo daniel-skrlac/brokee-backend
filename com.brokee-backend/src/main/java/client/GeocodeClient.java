@@ -13,6 +13,7 @@ public interface GeocodeClient {
     @Produces(MediaType.APPLICATION_JSON)
     ReverseGeocodeResponse reverse(
             @QueryParam("lat") double lat,
-            @QueryParam("lon") double lon
+            @QueryParam("lon") double lon,
+            @QueryParam("api_key") String apiKey
     );
 }

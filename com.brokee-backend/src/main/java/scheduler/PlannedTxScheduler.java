@@ -25,10 +25,10 @@ public class PlannedTxScheduler {
         List<PlannedTx> due = plannedRepo.findDue(today);
         for (PlannedTx p : due) {
             Transaction t = new Transaction();
-            t.setUserSub(p.userSub);
+            t.setUserSub(p.getUserSub());
             t.setType(p.getType());
-            t.setAmount(p.amount);
-            t.categoryId = p.categoryId;
+            t.setAmount(p.getAmount());
+            t.setCategoryId(p.getCategoryId());
             t.setTxTime(OffsetDateTime.now());
             t.persist();
         }

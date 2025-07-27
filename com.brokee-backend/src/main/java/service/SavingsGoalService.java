@@ -33,15 +33,15 @@ public class SavingsGoalService {
         var existing = repo.findByUser(userSub);
         if (existing == null) {
             existing = map.requestToEntity(dto);
-            existing.userSub = userSub;
+            existing.setUserSub(userSub);
             existing.persist();
             return ServiceResponseDirector.successCreated(
                     map.entityToResponse(existing),
                     "Savings goal created"
             );
         } else {
-            existing.targetAmt = dto.targetAmt;
-            existing.targetDate = dto.targetDate;
+            existing.setTargetAmt(dto.targetAmt);
+            existing.setTargetDate(dto.targetDate);
             existing.persist();
             return ServiceResponseDirector.successOk(
                     map.entityToResponse(existing),
@@ -59,8 +59,8 @@ public class SavingsGoalService {
         if (e == null) {
             return ServiceResponseDirector.errorNotFound("No savings goal to patch");
         }
-        if (dto.targetAmt != null) e.targetAmt = dto.targetAmt;
-        if (dto.targetDate != null) e.targetDate = dto.targetDate;
+        if (dto.targetAmt != null) e.setTargetAmt(dto.targetAmt);
+        if (dto.targetDate != null) e.setTargetDate(dto.targetDate);
         e.persist();
         return ServiceResponseDirector.successOk(
                 map.entityToResponse(e),

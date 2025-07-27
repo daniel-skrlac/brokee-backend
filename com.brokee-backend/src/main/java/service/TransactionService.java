@@ -206,10 +206,10 @@ public class TransactionService {
         t.setUserSub(userSub);
         t.persist();
 
-        t.locationName = locationService.getLocationName(
+        t.setLocationName(locationService.getLocationName(
                 t.getLatitude().doubleValue(),
                 t.getLongitude().doubleValue()
-        );
+        ));
         t.persist();
 
         return ServiceResponseDirector.successCreated(
@@ -229,10 +229,10 @@ public class TransactionService {
             return ServiceResponseDirector.errorNotFound("Transaction not found");
         }
         txMap.updateFromFullDto(dto, t);
-        t.locationName = locationService.getLocationName(
+        t.setLocationName(locationService.getLocationName(
                 t.getLatitude().doubleValue(),
                 t.getLongitude().doubleValue()
-        );
+        ));
         return ServiceResponseDirector.successOk(
                 txMap.entityToResponse(t),
                 "Successfully Updated"

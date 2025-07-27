@@ -2,7 +2,9 @@ package service;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import mapper.CategoryMapper;
+import model.entity.Category;
 import model.home.CategoryResponseDTO;
 import model.response.ServiceResponse;
 import model.response.ServiceResponseDirector;
@@ -34,5 +36,10 @@ public class CategoryService {
                 .map(map::toDto)
                 .collect(Collectors.toList());
         return ServiceResponseDirector.successOk(dtos, "Search results");
+    }
+
+    @Transactional
+    public Category getOrCreateRevolutCategory() {
+        return repo.findByName("Revolut").orElse(null);
     }
 }

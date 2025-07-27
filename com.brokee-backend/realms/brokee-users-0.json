@@ -1,0 +1,47 @@
+{
+  "realm" : "brokee",
+  "users" : [ {
+    "id" : "8ce23592-e070-4d2c-a122-6e183f70787a",
+    "createdTimestamp" : 1753519597696,
+    "username" : "dskrlac",
+    "enabled" : true,
+    "totp" : false,
+    "emailVerified" : false,
+    "firstName" : "Daniel",
+    "lastName" : "Škrlac",
+    "email" : "daniel.skrlac2@gmail.com",
+    "credentials" : [ {
+      "id" : "9a8bf459-e548-4655-85f3-4d7da8992c4b",
+      "type" : "password",
+      "createdDate" : 1753519597794,
+      "secretData" : "{\"value\":\"DLPF63tzlLaG+9zk8ZoR8rqdQ1VWW9wnAyJ1HO+MgNA=\",\"salt\":\"/Bn3/y8T2ynQlB4faC6Sgw==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-brokee" ],
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "563a4b9e-0af1-434b-a31d-f8d3524a30c9",
+    "createdTimestamp" : 1753474019264,
+    "username" : "pssstandchill@gmail.com",
+    "enabled" : true,
+    "totp" : false,
+    "emailVerified" : false,
+    "firstName" : "Chill",
+    "lastName" : "Chill",
+    "email" : "pssstandchill@gmail.com",
+    "credentials" : [ ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "federatedIdentities" : [ {
+      "identityProvider" : "google",
+      "userId" : "105663799145471624693",
+      "userName" : "pssstandchill@gmail.com"
+    } ],
+    "realmRoles" : [ "default-roles-brokee" ],
+    "notBefore" : 0,
+    "groups" : [ ]
+  } ]
+}
