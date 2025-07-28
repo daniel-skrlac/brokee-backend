@@ -4,8 +4,10 @@ import client.BinanceClient;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import mapper.BinanceTokenMapper;
 import model.entity.BinanceToken;
 import model.external.BinanceAccountDTO;
+import model.external.BinanceTokenDTO;
 import model.external.CoinPortfolioEntryDTO;
 import model.external.FullPortfolioDTO;
 import model.external.TickerPriceDTO;
@@ -34,22 +36,34 @@ public class BinanceService {
     @Inject
     BinanceTokenRepository tokenRepo;
 
+    @Inject
+    BinanceTokenMapper mapper;
+
     @Transactional
-    public ServiceResponseDTO<BinanceToken> saveCredentials(String userSub, String apiKey, String secretKey) {
+    public ServiceResponseDTO<BinanceTokenDTO> saveCredentials(
+            String userSub,
+            String apiKey,
+            String secretKey
+    ) {
         BinanceToken token = tokenRepo.findByUserSub(userSub)
                 .map(t -> tokenRepo.updateKeys(t.getId(), apiKey, secretKey))
                 .orElseGet(() -> tokenRepo.createForUser(userSub, apiKey, secretKey));
-        return ServiceResponseDirector.successOk(token, "Credentials saved");
+        BinanceTokenDTO dto = mapper.entityToDto(token);
+        return ServiceResponseDirector.successOk(dto, "Credentials saved");
     }
 
-    public ServiceResponseDTO<BinanceToken> getCredentials(String userSub) {
+    public ServiceResponseDTO<BinanceTokenDTO> getCredentials(String userSub) {
         return tokenRepo.findByUserSub(userSub)
-                .map(token -> ServiceResponseDirector.successOk(token, "OK"))
+                .map(token -> {
+                    BinanceTokenDTO dto = mapper.entityToDto(token);
+                    return ServiceResponseDirector.successOk(dto, "OK");
+                })
                 .orElseGet(() -> ServiceResponseDirector.errorNotFound(
                         "No Binance credentials stored for user: " + userSub
                 ));
     }
 
+    @Transactional
     public ServiceResponseDTO<Boolean> deleteCredentials(String userSub) {
         boolean deleted = tokenRepo.deleteByUserSub(userSub);
         if (deleted) {

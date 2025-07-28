@@ -12,8 +12,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
-import model.entity.BinanceToken;
 import model.external.BinanceCredentialDTO;
+import model.external.BinanceTokenDTO;
 import model.external.FullPortfolioDTO;
 import model.response.ServiceResponseDTO;
 import security.SecurityUtils;
@@ -32,12 +32,12 @@ public class BinanceResource {
     SecurityUtils securityUtils;
 
     @POST
-    public ServiceResponseDTO<BinanceToken> upsertCredentials(BinanceCredentialDTO dto) {
+    public ServiceResponseDTO<BinanceTokenDTO> upsertCredentials(BinanceCredentialDTO dto) {
         return service.saveCredentials(securityUtils.getCurrentUser(), dto.apiKey(), dto.secretKey());
     }
 
     @GET
-    public ServiceResponseDTO<BinanceToken> getCredentials() {
+    public ServiceResponseDTO<BinanceTokenDTO> getCredentials() {
         return service.getCredentials(securityUtils.getCurrentUser());
     }
 
