@@ -16,7 +16,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
-import model.response.ServiceResponse;
+import model.response.ServiceResponseDTO;
 import model.response.ServiceResponseDirector;
 import model.transaction.PlannedTxRequestDTO;
 import model.transaction.PlannedTxResponseDTO;
@@ -27,7 +27,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 
-@Path("/planned-transactions")
+@Path("/api/planned-transactions")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @RolesAllowed({"user"})
@@ -59,7 +59,7 @@ public class PlannedTxResource {
                     .build();
         }
 
-        ServiceResponse<List<PlannedTxResponseDTO>> resp =
+        ServiceResponseDTO<List<PlannedTxResponseDTO>> resp =
                 service.list(me(), title, dueFrom, dueTo);
 
         return Response.status(resp.getStatusCode())
@@ -70,7 +70,7 @@ public class PlannedTxResource {
     @GET
     @Path("{id}")
     public Response getOne(@PathParam("id") Long id) {
-        ServiceResponse<PlannedTxResponseDTO> resp = service.getById(me(), id);
+        ServiceResponseDTO<PlannedTxResponseDTO> resp = service.getById(me(), id);
         return Response.status(resp.getStatusCode())
                 .entity(resp)
                 .build();
@@ -78,7 +78,7 @@ public class PlannedTxResource {
 
     @POST
     public Response create(@Valid PlannedTxRequestDTO dto, @Context UriInfo uriInfo) {
-        ServiceResponse<PlannedTxResponseDTO> resp = service.create(me(), dto);
+        ServiceResponseDTO<PlannedTxResponseDTO> resp = service.create(me(), dto);
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
 
@@ -88,7 +88,7 @@ public class PlannedTxResource {
             @PathParam("id") Long id,
             @Valid PlannedTxRequestDTO dto
     ) {
-        ServiceResponse<PlannedTxResponseDTO> resp =
+        ServiceResponseDTO<PlannedTxResponseDTO> resp =
                 service.update(me(), id, dto);
 
         return Response.status(resp.getStatusCode())
@@ -99,7 +99,7 @@ public class PlannedTxResource {
     @DELETE
     @Path("{id}")
     public Response deleteOne(@PathParam("id") Long id) {
-        ServiceResponse<Boolean> resp = service.delete(me(), id);
+        ServiceResponseDTO<Boolean> resp = service.delete(me(), id);
         return Response.status(resp.getStatusCode())
                 .entity(resp)
                 .build();

@@ -21,7 +21,7 @@ import service.TransactionService;
 import java.io.InputStream;
 import java.util.List;
 
-@Path("/revolut")
+@Path("/api/revolut")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.MULTIPART_FORM_DATA)
 @Authenticated

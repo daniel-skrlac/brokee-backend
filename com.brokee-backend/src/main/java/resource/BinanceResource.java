@@ -15,11 +15,11 @@ import jakarta.ws.rs.core.MediaType;
 import model.entity.BinanceToken;
 import model.external.BinanceCredentialDTO;
 import model.external.FullPortfolioDTO;
-import model.response.ServiceResponse;
+import model.response.ServiceResponseDTO;
 import security.SecurityUtils;
 import service.BinanceService;
 
-@Path("/binance")
+@Path("/api/binance")
 @ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -32,23 +32,23 @@ public class BinanceResource {
     SecurityUtils securityUtils;
 
     @POST
-    public ServiceResponse<BinanceToken> upsertCredentials(BinanceCredentialDTO dto) {
+    public ServiceResponseDTO<BinanceToken> upsertCredentials(BinanceCredentialDTO dto) {
         return service.saveCredentials(securityUtils.getCurrentUser(), dto.apiKey(), dto.secretKey());
     }
 
     @GET
-    public ServiceResponse<BinanceToken> getCredentials() {
+    public ServiceResponseDTO<BinanceToken> getCredentials() {
         return service.getCredentials(securityUtils.getCurrentUser());
     }
 
     @GET
     @Path("/portfolio")
-    public ServiceResponse<FullPortfolioDTO> getPortfolio(@QueryParam("currency") @DefaultValue("EUR") String currency) {
+    public ServiceResponseDTO<FullPortfolioDTO> getPortfolio(@QueryParam("currency") @DefaultValue("EUR") String currency) {
         return service.getPortfolio(securityUtils.getCurrentUser(), currency);
     }
 
     @DELETE
-    public ServiceResponse<Boolean> deleteCredentials() {
+    public ServiceResponseDTO<Boolean> deleteCredentials() {
         return service.deleteCredentials(securityUtils.getCurrentUser());
     }
 }

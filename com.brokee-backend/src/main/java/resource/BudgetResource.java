@@ -17,13 +17,13 @@ import jakarta.ws.rs.core.Response;
 import model.helper.PagedResponseDTO;
 import model.home.BudgetRequestDTO;
 import model.home.BudgetResponseDTO;
-import model.response.ServiceResponse;
+import model.response.ServiceResponseDTO;
 import security.SecurityUtils;
 import service.BudgetService;
 
 import java.util.List;
 
-@Path("/budgets")
+@Path("/api/budgets")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Authenticated
@@ -39,7 +39,7 @@ public class BudgetResource {
             @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("size") @DefaultValue("10") int size
     ) {
-        ServiceResponse<PagedResponseDTO<BudgetResponseDTO>> resp =
+        ServiceResponseDTO<PagedResponseDTO<BudgetResponseDTO>> resp =
                 svc.list(sec.getCurrentUser(), page, size);
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
@@ -47,7 +47,7 @@ public class BudgetResource {
     @POST
     @Path("/bulk")
     public Response createBulk(@Valid List<BudgetRequestDTO> dtos) {
-        ServiceResponse<List<BudgetResponseDTO>> resp =
+        ServiceResponseDTO<List<BudgetResponseDTO>> resp =
                 svc.bulkCreate(sec.getCurrentUser(), dtos);
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
@@ -55,7 +55,7 @@ public class BudgetResource {
     @PATCH
     @Path("/bulk")
     public Response patchBulk(@Valid List<BudgetRequestDTO> dtos) {
-        ServiceResponse<List<BudgetResponseDTO>> resp =
+        ServiceResponseDTO<List<BudgetResponseDTO>> resp =
                 svc.bulkPatch(sec.getCurrentUser(), dtos);
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }

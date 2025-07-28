@@ -5,7 +5,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import model.entity.Transaction;
-import model.response.ServiceResponse;
+import model.response.ServiceResponseDTO;
 import model.response.ServiceResponseDirector;
 import model.external.RevolutTransactionDTO;
 import repository.TransactionRepository;
@@ -26,7 +26,7 @@ public class RevolutImportService {
     TransactionRepository txRepo;
 
     @Transactional
-    public ServiceResponse<List<Transaction>> importMonthlyPdf(String userSub, java.io.InputStream pdf) {
+    public ServiceResponseDTO<List<Transaction>> importMonthlyPdf(String userSub, java.io.InputStream pdf) {
         try {
             List<RevolutTransactionDTO> lines = parser.parseMonthlyStatement(pdf);
             var cat = categoryService.getOrCreateRevolutCategory();

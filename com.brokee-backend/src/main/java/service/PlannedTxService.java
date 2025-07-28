@@ -5,7 +5,7 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import mapper.PlannedTxMapper;
 import model.entity.PlannedTx;
-import model.response.ServiceResponse;
+import model.response.ServiceResponseDTO;
 import model.response.ServiceResponseDirector;
 import model.transaction.PlannedTxRequestDTO;
 import model.transaction.PlannedTxResponseDTO;
@@ -22,7 +22,7 @@ public class PlannedTxService {
     @Inject
     PlannedTxMapper map;
 
-    public ServiceResponse<List<PlannedTxResponseDTO>> list(
+    public ServiceResponseDTO<List<PlannedTxResponseDTO>> list(
             String userSub,
             String title,
             LocalDate dueFrom,
@@ -54,7 +54,7 @@ public class PlannedTxService {
         return ServiceResponseDirector.successOk(dtos, "OK");
     }
 
-    public ServiceResponse<PlannedTxResponseDTO> getById(String userSub, Long id) {
+    public ServiceResponseDTO<PlannedTxResponseDTO> getById(String userSub, Long id) {
         var e = repo.find("userSub = ?1 and id = ?2", userSub, id)
                 .firstResult();
         if (e == null) {
@@ -64,7 +64,7 @@ public class PlannedTxService {
     }
 
     @Transactional
-    public ServiceResponse<PlannedTxResponseDTO> create(
+    public ServiceResponseDTO<PlannedTxResponseDTO> create(
             String userSub,
             PlannedTxRequestDTO dto
     ) {
@@ -75,7 +75,7 @@ public class PlannedTxService {
     }
 
     @Transactional
-    public ServiceResponse<PlannedTxResponseDTO> update(
+    public ServiceResponseDTO<PlannedTxResponseDTO> update(
             String userSub,
             Long id,
             PlannedTxRequestDTO dto
@@ -91,7 +91,7 @@ public class PlannedTxService {
     }
 
     @Transactional
-    public ServiceResponse<Boolean> delete(String userSub, Long id) {
+    public ServiceResponseDTO<Boolean> delete(String userSub, Long id) {
         boolean ok = repo.deleteByUserAndId(userSub, id);
         if (!ok) {
             return ServiceResponseDirector.errorNotFound("Not found");

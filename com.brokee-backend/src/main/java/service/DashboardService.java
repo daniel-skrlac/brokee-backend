@@ -3,7 +3,7 @@ package service;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.Tuple;
-import model.response.ServiceResponse;
+import model.response.ServiceResponseDTO;
 import model.response.ServiceResponseDirector;
 import model.tracking.DashboardSummaryDTO;
 import repository.TransactionRepository;
@@ -15,7 +15,7 @@ public class DashboardService {
     @Inject
     TransactionRepository txRepo;
 
-    public ServiceResponse<DashboardSummaryDTO> summary(String userSub) {
+    public ServiceResponseDTO<DashboardSummaryDTO> summary(String userSub) {
         Tuple sums = txRepo.findTotalExpensesAndIncome(userSub);
         BigDecimal expenses = sums.get("totalExpenses", BigDecimal.class);
         BigDecimal income = sums.get("totalIncome", BigDecimal.class);

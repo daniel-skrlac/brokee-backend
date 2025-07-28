@@ -9,6 +9,8 @@ import model.entity.Budget;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class BudgetRepository implements PanacheRepository<Budget> {
@@ -44,9 +46,14 @@ public class BudgetRepository implements PanacheRepository<Budget> {
                 .getResultList();
     }
 
-
-    public List<Budget> findBudgetsByUser(String userSub) {
-        return list("userSub", userSub);
+    public List<Long> findExistingCategoryIds(String userSub, Set<Long> categoryIds) {
+        return list(
+                "userSub = ?1 and categoryId in ?2",
+                userSub, categoryIds
+        )
+                .stream()
+                .map(Budget::getCategoryId)
+                .collect(Collectors.toList());
     }
 
     public BigDecimal findAmountByUserAndCategory(String userSub, Long categoryId) {

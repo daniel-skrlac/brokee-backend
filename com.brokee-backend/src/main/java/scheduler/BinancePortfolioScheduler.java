@@ -3,13 +3,10 @@ package scheduler;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import model.entity.BinanceToken;
 import repository.BinanceTokenRepository;
 import repository.CategoryRepository;
 import repository.TransactionRepository;
 import service.BinanceService;
-import model.response.ServiceResponse;
-import model.external.FullPortfolioDTO;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

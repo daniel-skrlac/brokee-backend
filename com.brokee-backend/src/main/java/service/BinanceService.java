@@ -11,7 +11,7 @@ import model.external.FullPortfolioDTO;
 import model.external.TickerPriceDTO;
 import model.external.TopCoinDTO;
 import model.external.TradeDTO;
-import model.response.ServiceResponse;
+import model.response.ServiceResponseDTO;
 import model.response.ServiceResponseDirector;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import repository.BinanceTokenRepository;
@@ -35,14 +35,14 @@ public class BinanceService {
     BinanceTokenRepository tokenRepo;
 
     @Transactional
-    public ServiceResponse<BinanceToken> saveCredentials(String userSub, String apiKey, String secretKey) {
+    public ServiceResponseDTO<BinanceToken> saveCredentials(String userSub, String apiKey, String secretKey) {
         BinanceToken token = tokenRepo.findByUserSub(userSub)
                 .map(t -> tokenRepo.updateKeys(t.getId(), apiKey, secretKey))
                 .orElseGet(() -> tokenRepo.createForUser(userSub, apiKey, secretKey));
         return ServiceResponseDirector.successOk(token, "Credentials saved");
     }
 
-    public ServiceResponse<BinanceToken> getCredentials(String userSub) {
+    public ServiceResponseDTO<BinanceToken> getCredentials(String userSub) {
         return tokenRepo.findByUserSub(userSub)
                 .map(token -> ServiceResponseDirector.successOk(token, "OK"))
                 .orElseGet(() -> ServiceResponseDirector.errorNotFound(
@@ -50,7 +50,7 @@ public class BinanceService {
                 ));
     }
 
-    public ServiceResponse<Boolean> deleteCredentials(String userSub) {
+    public ServiceResponseDTO<Boolean> deleteCredentials(String userSub) {
         boolean deleted = tokenRepo.deleteByUserSub(userSub);
         if (deleted) {
             return ServiceResponseDirector.successOk(true, "Credentials deleted");
@@ -78,7 +78,7 @@ public class BinanceService {
         }
     }
 
-    public ServiceResponse<FullPortfolioDTO> getPortfolio(String userSub, String currency) {
+    public ServiceResponseDTO<FullPortfolioDTO> getPortfolio(String userSub, String currency) {
         currency = currency.toUpperCase();
 
         var optionalToken = tokenRepo.findByUserSub(userSub);

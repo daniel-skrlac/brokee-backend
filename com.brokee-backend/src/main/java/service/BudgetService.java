@@ -8,12 +8,13 @@ import model.entity.Budget;
 import model.helper.PagedResponseDTO;
 import model.home.BudgetRequestDTO;
 import model.home.BudgetResponseDTO;
-import model.response.ServiceResponse;
+import model.response.ServiceResponseDTO;
 import model.response.ServiceResponseDirector;
 import repository.BudgetRepository;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
@@ -24,7 +25,7 @@ public class BudgetService {
     @Inject
     BudgetMapper map;
 
-    public ServiceResponse<PagedResponseDTO<BudgetResponseDTO>> list(
+    public ServiceResponseDTO<PagedResponseDTO<BudgetResponseDTO>> list(
             String userSub, int page, int size
     ) {
         long total = repo.countByUser(userSub);
@@ -37,33 +38,40 @@ public class BudgetService {
         );
     }
 
-
     @Transactional
-    public ServiceResponse<List<BudgetResponseDTO>> bulkCreate(
+    public ServiceResponseDTO<List<BudgetResponseDTO>> bulkCreate(
             String userSub,
             List<BudgetRequestDTO> dtos
     ) {
         if (dtos == null || dtos.isEmpty()) {
             return ServiceResponseDirector.errorBadRequest("No budgets provided");
         }
-        List<Budget> saved = dtos.stream()
+        Set<Long> ids = dtos.stream()
+                .map(BudgetRequestDTO::categoryId)
+                .collect(Collectors.toSet());
+        if (ids.size() != dtos.size()) {
+            return ServiceResponseDirector.errorBadRequest("Duplicate category IDs in request");
+        }
+        List<Long> already = repo.findExistingCategoryIds(userSub, ids);
+        if (!already.isEmpty()) {
+            return ServiceResponseDirector.errorConflict(
+                    "Budgets already exist for categories: " + already);
+        }
+
+        List<BudgetResponseDTO> created = dtos.stream()
                 .map(dto -> {
                     Budget b = map.requestToEntity(dto);
                     b.setUserSub(userSub);
                     b.persist();
-                    return b;
+                    return map.entityToResponse(b);
                 })
-                .toList();
-
-        List<BudgetResponseDTO> resp = saved.stream()
-                .map(map::entityToResponse)
                 .collect(Collectors.toList());
-
-        return ServiceResponseDirector.successCreated(resp, "Budgets created");
+        return ServiceResponseDirector.successCreated(created, "Budgets created");
     }
 
+
     @Transactional
-    public ServiceResponse<List<BudgetResponseDTO>> bulkPatch(
+    public ServiceResponseDTO<List<BudgetResponseDTO>> bulkPatch(
             String userSub,
             List<BudgetRequestDTO> dtos
     ) {
@@ -87,7 +95,7 @@ public class BudgetService {
     }
 
     @Transactional
-    public ServiceResponse<Long> deleteBulk(String userSub, List<Long> categoryIds) {
+    public ServiceResponseDTO<Long> deleteBulk(String userSub, List<Long> categoryIds) {
         if (categoryIds == null || categoryIds.isEmpty()) {
             return ServiceResponseDirector.errorBadRequest("No categoryIds provided");
         }

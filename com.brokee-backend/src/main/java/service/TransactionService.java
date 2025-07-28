@@ -11,7 +11,7 @@ import model.helper.PagedResponseDTO;
 import model.home.FullTxRequestDTO;
 import model.home.QuickTxRequestDTO;
 import model.home.TxResponseDTO;
-import model.response.ServiceResponse;
+import model.response.ServiceResponseDTO;
 import model.response.ServiceResponseDirector;
 import model.tracking.CategoryBreakdownDTO;
 import model.tracking.LocationDTO;
@@ -51,7 +51,7 @@ public class TransactionService {
     @Inject
     NotificationService notifier;
 
-    public ServiceResponse<TxResponseDTO> findById(String userSub, Long id) {
+    public ServiceResponseDTO<TxResponseDTO> findById(String userSub, Long id) {
         Transaction t = txRepo.findByIdAndUser(userSub, id);
         if (t == null) {
             return ServiceResponseDirector.errorNotFound("Transaction not found");
@@ -62,7 +62,7 @@ public class TransactionService {
         );
     }
 
-    public ServiceResponse<List<SpendingVsIncomeDTO>> spendingVsIncome(String userSub, int year) {
+    public ServiceResponseDTO<List<SpendingVsIncomeDTO>> spendingVsIncome(String userSub, int year) {
         List<SpendingVsIncomeDTO> list = txRepo
                 .findSpendingVsIncomeByYear(userSub, year)
                 .stream()
@@ -76,7 +76,7 @@ public class TransactionService {
         return ServiceResponseDirector.successOk(list, "OK");
     }
 
-    public ServiceResponse<List<CategoryBreakdownDTO>> categoryBreakdown(String userSub, String monthKey) {
+    public ServiceResponseDTO<List<CategoryBreakdownDTO>> categoryBreakdown(String userSub, String monthKey) {
         List<CategoryBreakdownDTO> list = txRepo
                 .findCategoryBreakdown(userSub, monthKey)
                 .stream()
@@ -89,7 +89,7 @@ public class TransactionService {
         return ServiceResponseDirector.successOk(list, "OK");
     }
 
-    public ServiceResponse<List<LocationDTO>> topLocations(String userSub, int limit) {
+    public ServiceResponseDTO<List<LocationDTO>> topLocations(String userSub, int limit) {
         List<LocationDTO> list = txRepo
                 .findTopLocations(userSub, limit)
                 .stream()
@@ -104,7 +104,7 @@ public class TransactionService {
         return ServiceResponseDirector.successOk(list, "OK");
     }
 
-    public ServiceResponse<List<TxResponseDTO>> recent(String userSub, int limit) {
+    public ServiceResponseDTO<List<TxResponseDTO>> recent(String userSub, int limit) {
         List<TxResponseDTO> dtos = txRepo
                 .findRecent(userSub, limit)
                 .stream()
@@ -114,7 +114,7 @@ public class TransactionService {
         return ServiceResponseDirector.successOk(dtos, "OK");
     }
 
-    public ServiceResponse<PagedResponseDTO<TxResponseDTO>> page(
+    public ServiceResponseDTO<PagedResponseDTO<TxResponseDTO>> page(
             String userSub, int page, int size) {
 
         PanacheQuery<Transaction> query = txRepo.findByUserSorted(userSub);
@@ -137,7 +137,7 @@ public class TransactionService {
         return ServiceResponseDirector.successOk(paged, "OK");
     }
 
-    public ServiceResponse<BigDecimal> getBalance(String userSub) {
+    public ServiceResponseDTO<BigDecimal> getBalance(String userSub) {
         BigDecimal income = txRepo.sumByType(userSub, "I");
         BigDecimal expense = txRepo.sumByType(userSub, "E");
         return ServiceResponseDirector.successOk(
@@ -146,7 +146,7 @@ public class TransactionService {
         );
     }
 
-    public ServiceResponse<List<TxResponseDTO>> findByDateRange(
+    public ServiceResponseDTO<List<TxResponseDTO>> findByDateRange(
             String userSub,
             OffsetDateTime from,
             OffsetDateTime to
@@ -156,7 +156,7 @@ public class TransactionService {
         return ServiceResponseDirector.successOk(dtos, "OK");
     }
 
-    public ServiceResponse<Map<String, BigDecimal>> findDailyExpenses(
+    public ServiceResponseDTO<Map<String, BigDecimal>> findDailyExpenses(
             String userSub, int days
     ) {
         var now = OffsetDateTime.now(ZoneOffset.UTC);
@@ -178,7 +178,7 @@ public class TransactionService {
         return ServiceResponseDirector.successOk(sums, "OK");
     }
 
-    public ServiceResponse<Map<String, BigDecimal>> findMonthlyExpenses(
+    public ServiceResponseDTO<Map<String, BigDecimal>> findMonthlyExpenses(
             String userSub, int year
     ) {
         LocalDate yStart = LocalDate.of(year, 1, 1);
@@ -203,7 +203,7 @@ public class TransactionService {
         return ServiceResponseDirector.successOk(sums, "OK");
     }
 
-    public ServiceResponse<TxResponseDTO> quickAdd(String userSub, QuickTxRequestDTO dto) {
+    public ServiceResponseDTO<TxResponseDTO> quickAdd(String userSub, QuickTxRequestDTO dto) {
         Transaction t = txMap.quickRequestToEntity(dto);
         t.setUserSub(userSub);
         t.persist();
@@ -212,7 +212,7 @@ public class TransactionService {
     }
 
     @Transactional
-    public ServiceResponse<TxResponseDTO> create(String userSub, FullTxRequestDTO dto) {
+    public ServiceResponseDTO<TxResponseDTO> create(String userSub, FullTxRequestDTO dto) {
         Transaction t = txMap.fullRequestToEntity(dto);
         t.setUserSub(userSub);
         t.persist();
@@ -254,7 +254,7 @@ public class TransactionService {
     }
 
     @Transactional
-    public ServiceResponse<TxResponseDTO> update(
+    public ServiceResponseDTO<TxResponseDTO> update(
             String userSub,
             Long id,
             FullTxRequestDTO dto
@@ -274,7 +274,7 @@ public class TransactionService {
         );
     }
 
-    public ServiceResponse<Boolean> delete(String userSub, Long id) {
+    public ServiceResponseDTO<Boolean> delete(String userSub, Long id) {
         boolean deleted = txRepo.deleteByIdAndUser(userSub, id);
         if (!deleted) {
             return ServiceResponseDirector.errorNotFound("Transaction not found");

@@ -4,7 +4,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import mapper.SavingsGoalMapper;
-import model.response.ServiceResponse;
+import model.response.ServiceResponseDTO;
 import model.response.ServiceResponseDirector;
 import model.settings.SavingsGoalRequestDTO;
 import model.settings.SavingsGoalResponseDTO;
@@ -17,7 +17,7 @@ public class SavingsGoalService {
     @Inject
     SavingsGoalMapper map;
 
-    public ServiceResponse<SavingsGoalResponseDTO> get(String userSub) {
+    public ServiceResponseDTO<SavingsGoalResponseDTO> get(String userSub) {
         var e = repo.findByUser(userSub);
         if (e == null) {
             return ServiceResponseDirector.errorNotFound("No savings goal found");
@@ -26,7 +26,7 @@ public class SavingsGoalService {
     }
 
     @Transactional
-    public ServiceResponse<SavingsGoalResponseDTO> upsert(
+    public ServiceResponseDTO<SavingsGoalResponseDTO> upsert(
             String userSub,
             SavingsGoalRequestDTO dto
     ) {
@@ -51,7 +51,7 @@ public class SavingsGoalService {
     }
 
     @Transactional
-    public ServiceResponse<SavingsGoalResponseDTO> patch(
+    public ServiceResponseDTO<SavingsGoalResponseDTO> patch(
             String userSub,
             SavingsGoalRequestDTO dto
     ) {
@@ -69,7 +69,7 @@ public class SavingsGoalService {
     }
 
     @Transactional
-    public ServiceResponse<Boolean> delete(String userSub) {
+    public ServiceResponseDTO<Boolean> delete(String userSub) {
         boolean ok = repo.deleteByUser(userSub);
         if (!ok) {
             return ServiceResponseDirector.errorNotFound("No savings goal to delete");

@@ -6,7 +6,7 @@ import jakarta.transaction.Transactional;
 import mapper.CategoryMapper;
 import model.entity.Category;
 import model.home.CategoryResponseDTO;
-import model.response.ServiceResponse;
+import model.response.ServiceResponseDTO;
 import model.response.ServiceResponseDirector;
 import repository.CategoryRepository;
 
@@ -22,7 +22,7 @@ public class CategoryService {
     @Inject
     CategoryMapper map;
 
-    public ServiceResponse<List<CategoryResponseDTO>> listAll() {
+    public ServiceResponseDTO<List<CategoryResponseDTO>> listAll() {
         var dtos = repo.listAll()
                 .stream()
                 .map(map::toDto)
@@ -30,7 +30,7 @@ public class CategoryService {
         return ServiceResponseDirector.successOk(dtos, "All categories");
     }
 
-    public ServiceResponse<List<CategoryResponseDTO>> search(String term) {
+    public ServiceResponseDTO<List<CategoryResponseDTO>> search(String term) {
         var dtos = repo.findByNameLike(term)
                 .stream()
                 .map(map::toDto)

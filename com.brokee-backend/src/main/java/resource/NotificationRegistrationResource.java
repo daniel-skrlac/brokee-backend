@@ -13,7 +13,7 @@ import model.notification.RegisterPushDTO;
 import security.SecurityUtils;
 import service.NotificationRegistrationService;
 
-@Path("notifications")
+@Path("/api/notifications")
 @ApplicationScoped
 public class NotificationRegistrationResource {
 
