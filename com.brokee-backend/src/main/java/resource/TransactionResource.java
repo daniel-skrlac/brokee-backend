@@ -24,6 +24,7 @@ import model.response.ServiceResponseDTO;
 import model.tracking.CategoryBreakdownDTO;
 import model.tracking.LocationDTO;
 import model.tracking.SpendingVsIncomeDTO;
+import security.SecurityUtils;
 import service.TransactionService;
 
 import java.math.BigDecimal;
@@ -40,17 +41,14 @@ public class TransactionResource {
     @Inject
     TransactionService txService;
     @Inject
-    SecurityIdentity identity;
+    SecurityUtils securityUtils;
 
-    private String currentUser() {
-        return identity.getPrincipal().getName();
-    }
 
     @GET
     @Path("/recent")
     public Response recent(@QueryParam("limit") @DefaultValue("5") int limit) {
         ServiceResponseDTO<List<TxResponseDTO>> resp =
-                txService.recent(currentUser(), limit);
+                txService.recent(securityUtils.getCurrentUser(), limit);
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
 
@@ -60,7 +58,7 @@ public class TransactionResource {
             @QueryParam("size") @DefaultValue("10") int size
     ) {
         ServiceResponseDTO<PagedResponseDTO<TxResponseDTO>> resp =
-                txService.page(currentUser(), page, size);
+                txService.page(securityUtils.getCurrentUser(), page, size);
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
 
@@ -68,7 +66,7 @@ public class TransactionResource {
     @Path("/balance")
     public Response balance() {
         ServiceResponseDTO<BigDecimal> resp =
-                txService.getBalance(currentUser());
+                txService.getBalance(securityUtils.getCurrentUser());
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
 
@@ -81,7 +79,7 @@ public class TransactionResource {
         OffsetDateTime f = OffsetDateTime.parse(from);
         OffsetDateTime t = OffsetDateTime.parse(to);
         ServiceResponseDTO<List<TxResponseDTO>> resp =
-                txService.findByDateRange(currentUser(), f, t);
+                txService.findByDateRange(securityUtils.getCurrentUser(), f, t);
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
 
@@ -91,7 +89,7 @@ public class TransactionResource {
             @QueryParam("days") @DefaultValue("7") int days
     ) {
         ServiceResponseDTO<Map<String, BigDecimal>> resp =
-                txService.findDailyExpenses(currentUser(), days);
+                txService.findDailyExpenses(securityUtils.getCurrentUser(), days);
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
 
@@ -104,7 +102,7 @@ public class TransactionResource {
             year = java.time.LocalDate.now().getYear();
         }
         ServiceResponseDTO<Map<String, BigDecimal>> resp =
-                txService.findMonthlyExpenses(currentUser(), year);
+                txService.findMonthlyExpenses(securityUtils.getCurrentUser(), year);
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
 
@@ -112,7 +110,7 @@ public class TransactionResource {
     @Path("/spending-vs-income")
     public Response spendingVsIncome(@QueryParam("year") @DefaultValue("2025") int year) {
         ServiceResponseDTO<List<SpendingVsIncomeDTO>> resp =
-                txService.spendingVsIncome(currentUser(), year);
+                txService.spendingVsIncome(securityUtils.getCurrentUser(), year);
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
 
@@ -120,7 +118,7 @@ public class TransactionResource {
     @Path("/category-breakdown")
     public Response categoryBreakdown(@QueryParam("month") String monthKey) {
         ServiceResponseDTO<List<CategoryBreakdownDTO>> resp =
-                txService.categoryBreakdown(currentUser(), monthKey);
+                txService.categoryBreakdown(securityUtils.getCurrentUser(), monthKey);
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
 
@@ -128,7 +126,7 @@ public class TransactionResource {
     @Path("/top-locations")
     public Response topLocations(@QueryParam("limit") @DefaultValue("3") int limit) {
         ServiceResponseDTO<List<LocationDTO>> resp =
-                txService.topLocations(currentUser(), limit);
+                txService.topLocations(securityUtils.getCurrentUser(), limit);
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
 
@@ -136,7 +134,7 @@ public class TransactionResource {
     @Path("/{id}")
     public Response getById(@PathParam("id") Long id) {
         ServiceResponseDTO<TxResponseDTO> resp =
-                txService.findById(currentUser(), id);
+                txService.findById(securityUtils.getCurrentUser(), id);
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
 
@@ -144,14 +142,14 @@ public class TransactionResource {
     @Path("/quick")
     public Response quickAdd(@Valid QuickTxRequestDTO dto) {
         ServiceResponseDTO<TxResponseDTO> resp =
-                txService.quickAdd(currentUser(), dto);
+                txService.quickAdd(securityUtils.getCurrentUser(), dto);
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
 
     @POST
     public Response create(@Valid FullTxRequestDTO dto) {
         ServiceResponseDTO<TxResponseDTO> resp =
-                txService.create(currentUser(), dto);
+                txService.create(securityUtils.getCurrentUser(), dto);
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
 
@@ -162,7 +160,7 @@ public class TransactionResource {
             @Valid FullTxRequestDTO dto
     ) {
         ServiceResponseDTO<TxResponseDTO> resp =
-                txService.update(currentUser(), id, dto);
+                txService.update(securityUtils.getCurrentUser(), id, dto);
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
 
@@ -170,7 +168,7 @@ public class TransactionResource {
     @Path("/{id}")
     public Response delete(@PathParam("id") Long id) {
         ServiceResponseDTO<Boolean> resp =
-                txService.delete(currentUser(), id);
+                txService.delete(securityUtils.getCurrentUser(), id);
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
 }

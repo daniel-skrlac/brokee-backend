@@ -1,5 +1,6 @@
 package model.home;
 
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -17,8 +18,7 @@ public record QuickTxRequestDTO(
         @Positive(message = "amount must be positive")
         BigDecimal amount,
 
-        @NotNull
-        @Positive(message = "categoryId must be a positive number")
+        @Nullable
         Long categoryId,
 
         @NotNull(message = "txTime cannot be null")

@@ -1,5 +1,6 @@
 package resource;
 
+import io.quarkus.security.Authenticated;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -30,18 +31,14 @@ import java.util.List;
 @Path("/api/planned-transactions")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@RolesAllowed({"user"})
+@Authenticated
 public class PlannedTxResource {
 
     @Inject
     PlannedTxService service;
 
     @Inject
-    SecurityUtils security;
-
-    private String me() {
-        return security.getCurrentUser();
-    }
+    SecurityUtils securityUtils;
 
     @GET
     public Response list(
@@ -60,7 +57,7 @@ public class PlannedTxResource {
         }
 
         ServiceResponseDTO<List<PlannedTxResponseDTO>> resp =
-                service.list(me(), title, dueFrom, dueTo);
+                service.list(securityUtils.getCurrentUser(), title, dueFrom, dueTo);
 
         return Response.status(resp.getStatusCode())
                 .entity(resp)
@@ -70,7 +67,7 @@ public class PlannedTxResource {
     @GET
     @Path("{id}")
     public Response getOne(@PathParam("id") Long id) {
-        ServiceResponseDTO<PlannedTxResponseDTO> resp = service.getById(me(), id);
+        ServiceResponseDTO<PlannedTxResponseDTO> resp = service.getById(securityUtils.getCurrentUser(), id);
         return Response.status(resp.getStatusCode())
                 .entity(resp)
                 .build();
@@ -78,7 +75,7 @@ public class PlannedTxResource {
 
     @POST
     public Response create(@Valid PlannedTxRequestDTO dto, @Context UriInfo uriInfo) {
-        ServiceResponseDTO<PlannedTxResponseDTO> resp = service.create(me(), dto);
+        ServiceResponseDTO<PlannedTxResponseDTO> resp = service.create(securityUtils.getCurrentUser(), dto);
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }
 
@@ -89,7 +86,7 @@ public class PlannedTxResource {
             @Valid PlannedTxRequestDTO dto
     ) {
         ServiceResponseDTO<PlannedTxResponseDTO> resp =
-                service.update(me(), id, dto);
+                service.update(securityUtils.getCurrentUser(), id, dto);
 
         return Response.status(resp.getStatusCode())
                 .entity(resp)
@@ -99,7 +96,7 @@ public class PlannedTxResource {
     @DELETE
     @Path("{id}")
     public Response deleteOne(@PathParam("id") Long id) {
-        ServiceResponseDTO<Boolean> resp = service.delete(me(), id);
+        ServiceResponseDTO<Boolean> resp = service.delete(securityUtils.getCurrentUser(), id);
         return Response.status(resp.getStatusCode())
                 .entity(resp)
                 .build();

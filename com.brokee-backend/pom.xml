@@ -192,6 +192,11 @@
                         </goals>
                         <configuration>
                             <jsonLibrary>jackson2</jsonLibrary>
+                            <optionalProperties>useSpecifiedAnnotations</optionalProperties>
+                            <optionalAnnotations>
+                                <optionalAnnotation>jakarta.annotation.Nullable</optionalAnnotation>
+                            </optionalAnnotations>
+                            <optionalPropertiesDeclaration>questionMark</optionalPropertiesDeclaration>
                             <outputKind>module</outputKind>
                             <classPatterns>
                                 <param>**.*DTO</param>

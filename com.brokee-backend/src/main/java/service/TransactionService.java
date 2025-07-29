@@ -6,6 +6,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import mapper.TransactionMapper;
+import model.entity.Category;
 import model.entity.Transaction;
 import model.helper.PagedResponseDTO;
 import model.home.FullTxRequestDTO;
@@ -27,6 +28,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -159,35 +161,37 @@ public class TransactionService {
     public ServiceResponseDTO<Map<String, BigDecimal>> findDailyExpenses(
             String userSub, int days
     ) {
-        var now = OffsetDateTime.now(ZoneOffset.UTC);
+        var now   = OffsetDateTime.now(ZoneOffset.UTC);
         var start = now.minusDays(days - 1)
                 .withHour(0).withMinute(0).withSecond(0).withNano(0);
 
         var sums = txRepo.findByUserAndDateRange(userSub, start, now).stream()
-                .filter(t -> "E".equals(t.getType()))
                 .collect(Collectors.groupingBy(
                         t -> t.getTxTime().toLocalDate().toString(),
                         TreeMap::new,
                         Collectors.reducing(
                                 BigDecimal.ZERO,
-                                Transaction::getAmount,
+                                t -> {
+                                    // map expense → negative, income → positive
+                                    return "E".equals(t.getType())
+                                            ? t.getAmount().negate()
+                                            :       t.getAmount();
+                                },
                                 BigDecimal::add
                         )
                 ));
-
         return ServiceResponseDirector.successOk(sums, "OK");
     }
 
     public ServiceResponseDTO<Map<String, BigDecimal>> findMonthlyExpenses(
             String userSub, int year
     ) {
-        LocalDate yStart = LocalDate.of(year, 1, 1);
-        LocalDate yEnd = LocalDate.of(year, 12, 31);
+        LocalDate yStart = LocalDate.of(year,  1,  1);
+        LocalDate yEnd   = LocalDate.of(year, 12, 31);
         var from = yStart.atStartOfDay().atOffset(ZoneOffset.UTC);
-        var to = yEnd.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC);
+        var to   = yEnd.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC);
 
         var sums = txRepo.findByUserAndDateRange(userSub, from, to).stream()
-                .filter(t -> "E".equals(t.getType()))
                 .collect(Collectors.groupingBy(
                         t -> String.format("%d-%02d",
                                 t.getTxTime().getYear(),
@@ -195,7 +199,11 @@ public class TransactionService {
                         TreeMap::new,
                         Collectors.reducing(
                                 BigDecimal.ZERO,
-                                Transaction::getAmount,
+                                t -> {
+                                    return "E".equals(t.getType())
+                                            ? t.getAmount().negate()
+                                            :       t.getAmount();
+                                },
                                 BigDecimal::add
                         )
                 ));
@@ -203,8 +211,13 @@ public class TransactionService {
         return ServiceResponseDirector.successOk(sums, "OK");
     }
 
+    @Transactional
     public ServiceResponseDTO<TxResponseDTO> quickAdd(String userSub, QuickTxRequestDTO dto) {
         Transaction t = txMap.quickRequestToEntity(dto);
+        if (dto.categoryId() == null) {
+            Optional<Category> category = categoryRepository.findByName("General");
+            category.ifPresent(value -> t.setCategoryId(value.getId()));
+        }
         t.setUserSub(userSub);
         t.persist();
         return ServiceResponseDirector.successCreated(
