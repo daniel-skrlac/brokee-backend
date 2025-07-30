@@ -192,6 +192,8 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
                                 FROM Transaction t
                                 WHERE t.userSub = :user
                                   AND t.type = 'E'
+                                  AND t.latitude IS NOT NULL
+                                  AND t.longitude IS NOT NULL
                                 GROUP BY t.latitude, t.longitude, t.locationName
                                 ORDER BY SUM(t.amount) DESC
                                 """, Tuple.class)

@@ -1,6 +1,7 @@
 package service;
 
 import client.BinanceClient;
+import io.quarkus.cache.CacheResult;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -92,6 +93,7 @@ public class BinanceService {
         }
     }
 
+    @CacheResult(cacheName = "portfolio-cache")
     public ServiceResponseDTO<FullPortfolioDTO> getPortfolio(String userSub, String currency) {
         currency = currency.toUpperCase();
 
