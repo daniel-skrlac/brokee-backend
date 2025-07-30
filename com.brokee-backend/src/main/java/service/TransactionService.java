@@ -23,9 +23,11 @@ import repository.TransactionRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -117,9 +119,29 @@ public class TransactionService {
     }
 
     public ServiceResponseDTO<PagedResponseDTO<TxResponseDTO>> page(
-            String userSub, int page, int size) {
+            String userSub,
+            int page,
+            int size,
+            String type,
+            BigDecimal minAmount,
+            BigDecimal maxAmount,
+            String dueFromStr,
+            String dueToStr,
+            String note,
+            String categoryName
+    ) {
+        LocalDateTime dueFrom = null, dueTo = null;
+        try {
+            if (dueFromStr != null) dueFrom = OffsetDateTime.parse(dueFromStr).toLocalDateTime();
+            if (dueToStr != null) dueTo = OffsetDateTime.parse(dueToStr).toLocalDateTime();
+        } catch (DateTimeParseException ex) {
+            return ServiceResponseDirector.errorBadRequest("Invalid date format");
+        }
 
-        PanacheQuery<Transaction> query = txRepo.findByUserSorted(userSub);
+        PanacheQuery<Transaction> query = txRepo.findByUserWithFilters(
+                userSub, type, minAmount, maxAmount, dueFrom, dueTo,
+                note, categoryName
+        );
 
         long total = query.count();
         List<TxResponseDTO> dtos = query
@@ -129,13 +151,7 @@ public class TransactionService {
                 .map(txMap::entityToResponse)
                 .toList();
 
-        PagedResponseDTO<TxResponseDTO> paged = new PagedResponseDTO<>(
-                dtos,
-                page,
-                size,
-                total
-        );
-
+        var paged = new PagedResponseDTO<>(dtos, page, size, total);
         return ServiceResponseDirector.successOk(paged, "OK");
     }
 
@@ -161,7 +177,7 @@ public class TransactionService {
     public ServiceResponseDTO<Map<String, BigDecimal>> findDailyExpenses(
             String userSub, int days
     ) {
-        var now   = OffsetDateTime.now(ZoneOffset.UTC);
+        var now = OffsetDateTime.now(ZoneOffset.UTC);
         var start = now.minusDays(days - 1)
                 .withHour(0).withMinute(0).withSecond(0).withNano(0);
 
@@ -175,7 +191,7 @@ public class TransactionService {
                                     // map expense → negative, income → positive
                                     return "E".equals(t.getType())
                                             ? t.getAmount().negate()
-                                            :       t.getAmount();
+                                            : t.getAmount();
                                 },
                                 BigDecimal::add
                         )
@@ -186,10 +202,10 @@ public class TransactionService {
     public ServiceResponseDTO<Map<String, BigDecimal>> findMonthlyExpenses(
             String userSub, int year
     ) {
-        LocalDate yStart = LocalDate.of(year,  1,  1);
-        LocalDate yEnd   = LocalDate.of(year, 12, 31);
+        LocalDate yStart = LocalDate.of(year, 1, 1);
+        LocalDate yEnd = LocalDate.of(year, 12, 31);
         var from = yStart.atStartOfDay().atOffset(ZoneOffset.UTC);
-        var to   = yEnd.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC);
+        var to = yEnd.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC);
 
         var sums = txRepo.findByUserAndDateRange(userSub, from, to).stream()
                 .collect(Collectors.groupingBy(
@@ -202,7 +218,7 @@ public class TransactionService {
                                 t -> {
                                     return "E".equals(t.getType())
                                             ? t.getAmount().negate()
-                                            :       t.getAmount();
+                                            : t.getAmount();
                                 },
                                 BigDecimal::add
                         )

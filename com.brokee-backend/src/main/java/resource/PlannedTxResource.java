@@ -17,6 +17,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import model.helper.PagedResponseDTO;
 import model.response.ServiceResponseDTO;
 import model.response.ServiceResponseDirector;
 import model.transaction.PlannedTxRequestDTO;
@@ -27,6 +28,8 @@ import service.PlannedTxService;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+
+import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 
 @Path("/api/planned-transactions")
 @Produces(MediaType.APPLICATION_JSON)
@@ -42,28 +45,52 @@ public class PlannedTxResource {
 
     @GET
     public Response list(
-            @QueryParam("title") String title,
-            @QueryParam("dueFrom") String dueFromStr,
-            @QueryParam("dueTo") String dueToStr
+            @QueryParam("page")     Integer   page,
+            @QueryParam("size")     Integer   size,
+            @QueryParam("title")    String    title,
+            @QueryParam("dueFrom")  String    dueFromStr,
+            @QueryParam("dueTo")    String    dueToStr,
+            @QueryParam("type")     String    type,
+            @QueryParam("min")      Double    minAmount,
+            @QueryParam("max")      Double    maxAmount,
+            @QueryParam("category") String    categoryName
     ) {
         LocalDate dueFrom = null, dueTo = null;
         try {
             if (dueFromStr != null) dueFrom = LocalDate.parse(dueFromStr);
-            if (dueToStr != null) dueTo = LocalDate.parse(dueToStr);
+            if (dueToStr   != null) dueTo   = LocalDate.parse(dueToStr);
         } catch (DateTimeParseException ex) {
-            return Response.status(Response.Status.BAD_REQUEST)
+            return Response.status(BAD_REQUEST)
                     .entity(ServiceResponseDirector.errorBadRequest("Invalid date format"))
                     .build();
         }
 
-        ServiceResponseDTO<List<PlannedTxResponseDTO>> resp =
-                service.list(securityUtils.getCurrentUser(), title, dueFrom, dueTo);
-
-        return Response.status(resp.getStatusCode())
-                .entity(resp)
-                .build();
+        boolean doPaging = (page != null && size != null);
+        if (doPaging) {
+            ServiceResponseDTO<PagedResponseDTO<PlannedTxResponseDTO>> resp =
+                    service.page(
+                            securityUtils.getCurrentUser(),
+                            page, size,
+                            title, dueFrom, dueTo,
+                            type, minAmount, maxAmount,
+                            categoryName
+                    );
+            return Response.status(resp.getStatusCode())
+                    .entity(resp)
+                    .build();
+        } else {
+            ServiceResponseDTO<List<PlannedTxResponseDTO>> resp =
+                    service.list(
+                            securityUtils.getCurrentUser(),
+                            title, dueFrom, dueTo,
+                            type, minAmount, maxAmount,
+                            categoryName
+                    );
+            return Response.status(resp.getStatusCode())
+                    .entity(resp)
+                    .build();
+        }
     }
-
     @GET
     @Path("{id}")
     public Response getOne(@PathParam("id") Long id) {

@@ -5,6 +5,7 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import mapper.PlannedTxMapper;
 import model.entity.PlannedTx;
+import model.helper.PagedResponseDTO;
 import model.response.ServiceResponseDTO;
 import model.response.ServiceResponseDirector;
 import model.transaction.PlannedTxRequestDTO;
@@ -26,32 +27,52 @@ public class PlannedTxService {
             String userSub,
             String title,
             LocalDate dueFrom,
-            LocalDate dueTo
+            LocalDate dueTo,
+            String type,
+            Double minAmount,
+            Double maxAmount,
+            String categoryName
     ) {
-        List<PlannedTx> all;
-
-        boolean hasTitle = title != null && !title.isBlank();
-        boolean hasDueFrom = dueFrom != null;
-        boolean hasDueTo = dueTo != null;
-
-        if (hasTitle && hasDueFrom && hasDueTo) {
-            all = repo.list(
-                    "userSub = ?1 and lower(title) like ?2 and dueDate between ?3 and ?4",
-                    userSub, "%" + title.toLowerCase() + "%", dueFrom, dueTo
-            );
-        } else if (hasTitle) {
-            all = repo.findByUserAndTitle(userSub, title);
-        } else if (hasDueFrom && hasDueTo) {
-            all = repo.findByUserAndDueBetween(userSub, dueFrom, dueTo);
-        } else {
-            all = repo.findByUser(userSub);
-        }
+        List<PlannedTx> all = repo.findWithFilters(
+                userSub, title, dueFrom, dueTo,
+                type, minAmount, maxAmount,
+                categoryName
+        ).list();
 
         var dtos = all.stream()
                 .map(map::entityToResponse)
                 .toList();
 
         return ServiceResponseDirector.successOk(dtos, "OK");
+    }
+
+    public ServiceResponseDTO<PagedResponseDTO<PlannedTxResponseDTO>> page(
+            String userSub,
+            int page,
+            int size,
+            String title,
+            LocalDate dueFrom,
+            LocalDate dueTo,
+            String type,
+            Double minAmount,
+            Double maxAmount,
+            String categoryName
+    ) {
+        var query = repo.findWithFilters(
+                userSub, title, dueFrom, dueTo,
+                type, minAmount, maxAmount,
+                categoryName
+        );
+
+        long total = query.count();
+        var items = query.page(io.quarkus.panache.common.Page.of(page, size))
+                .list()
+                .stream()
+                .map(map::entityToResponse)
+                .toList();
+
+        var paged = new PagedResponseDTO<>(items, page, size, total);
+        return ServiceResponseDirector.successOk(paged, "OK");
     }
 
     public ServiceResponseDTO<PlannedTxResponseDTO> getById(String userSub, Long id) {

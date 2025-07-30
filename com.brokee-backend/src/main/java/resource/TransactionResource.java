@@ -1,7 +1,6 @@
 package resource;
 
 import io.quarkus.security.Authenticated;
-import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
@@ -55,12 +54,30 @@ public class TransactionResource {
     @GET
     public Response page(
             @QueryParam("page") @DefaultValue("0") int page,
-            @QueryParam("size") @DefaultValue("10") int size
+            @QueryParam("size") @DefaultValue("10") int size,
+            @QueryParam("type") String type,
+            @QueryParam("min") BigDecimal minAmount,
+            @QueryParam("max") BigDecimal maxAmount,
+            @QueryParam("dueFrom") String dueFromStr,
+            @QueryParam("dueTo") String dueToStr,
+            @QueryParam("note") String note,
+            @QueryParam("category") String categoryName
     ) {
         ServiceResponseDTO<PagedResponseDTO<TxResponseDTO>> resp =
-                txService.page(securityUtils.getCurrentUser(), page, size);
-        return Response.status(resp.getStatusCode()).entity(resp).build();
+                txService.page(
+                        securityUtils.getCurrentUser(),
+                        page, size,
+                        type, minAmount, maxAmount,
+                        dueFromStr, dueToStr,
+                        note,
+                        categoryName     // ← pass along
+                );
+        return Response
+                .status(resp.getStatusCode())
+                .entity(resp)
+                .build();
     }
+
 
     @GET
     @Path("/balance")

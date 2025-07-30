@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @ApplicationScoped
@@ -22,6 +23,58 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
 
     @Inject
     EntityManager em;
+
+    public PanacheQuery<Transaction> findByUserWithFilters(
+            String userSub,
+            String type,
+            BigDecimal minAmount,
+            BigDecimal maxAmount,
+            LocalDateTime dueFrom,
+            LocalDateTime dueTo,
+            String note,
+            String categoryName
+    ) {
+        StringBuilder ql = new StringBuilder("userSub = ?1");
+        List<Object> params = new ArrayList<>();
+        params.add(userSub);
+        int idx = 2;
+
+        if (type != null && !type.isBlank()) {
+            ql.append(" AND type = ?").append(idx++);
+            params.add(type);
+        }
+        if (minAmount != null) {
+            ql.append(" AND amount >= ?").append(idx++);
+            params.add(minAmount);
+        }
+        if (maxAmount != null) {
+            ql.append(" AND amount <= ?").append(idx++);
+            params.add(maxAmount);
+        }
+        if (dueFrom != null) {
+            ql.append(" AND txTime >= ?").append(idx++);
+            params.add(dueFrom);
+        }
+        if (dueTo != null) {
+            ql.append(" AND txTime <= ?").append(idx++);
+            params.add(dueTo);
+        }
+        if (note != null && !note.isBlank()) {
+            ql.append(" AND LOWER(note) LIKE ?").append(idx++);
+            params.add("%" + note.toLowerCase() + "%");
+        }
+        if (categoryName != null && !categoryName.isBlank()) {
+            ql.append(" AND categoryId IN (SELECT c.id FROM Category c WHERE LOWER(c.name) LIKE ?")
+                    .append(idx).append(")");
+            params.add("%" + categoryName.toLowerCase() + "%");
+        }
+
+        return find(
+                ql.toString(),
+                Sort.by("txTime", Sort.Direction.Descending),
+                params.toArray()
+        );
+    }
 
     public Transaction create(Transaction tx) {
         persist(tx);
@@ -286,13 +339,13 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
 
     public BigDecimal sumByCategory(String userSub, String categoryName) {
         return em.createQuery("""
-            SELECT COALESCE(SUM(t.amount), 0)
-            FROM Transaction t
-            JOIN Category c ON t.categoryId = c.id
-            WHERE t.userSub = :userSub
-              AND t.type = 'I'
-              AND c.name = :categoryName
-            """, BigDecimal.class)
+                        SELECT COALESCE(SUM(t.amount), 0)
+                        FROM Transaction t
+                        JOIN Category c ON t.categoryId = c.id
+                        WHERE t.userSub = :userSub
+                          AND t.type = 'I'
+                          AND c.name = :categoryName
+                        """, BigDecimal.class)
                 .setParameter("userSub", userSub)
                 .setParameter("categoryName", categoryName)
                 .getSingleResult();
