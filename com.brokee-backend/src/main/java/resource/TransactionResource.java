@@ -70,7 +70,7 @@ public class TransactionResource {
                         type, minAmount, maxAmount,
                         dueFromStr, dueToStr,
                         note,
-                        categoryName     // ← pass along
+                        categoryName
                 );
         return Response
                 .status(resp.getStatusCode())

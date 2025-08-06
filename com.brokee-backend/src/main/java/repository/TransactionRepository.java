@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -329,13 +330,23 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
                 .list();
     }
 
-    public BigDecimal sumExpensesForCategorySince(String userSub, Long categoryId, LocalDate fromDate) {
+    /*  TransactionRepository.java  */
+    public BigDecimal sumExpensesForCategorySince(String userSub,
+                                                  Long   categoryId,
+                                                  LocalDate fromDate) {
+
+        /* convert  YYYY-MM-DD  →  2025-08-01T00:00Z */
+        var utcMidnight = fromDate
+                .atStartOfDay()          // LocalDateTime 2025-08-01T00:00
+                .atOffset(ZoneOffset.UTC);   // OffsetDateTime 2025-08-01T00:00Z
+
         return find("userSub = ?1 and categoryId = ?2 and type = 'E' and txTime >= ?3",
-                userSub, categoryId, fromDate.atStartOfDay())
+                userSub, categoryId, utcMidnight)
                 .stream()
                 .map(Transaction::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+
 
     public BigDecimal sumByCategory(String userSub, String categoryName) {
         return em.createQuery("""

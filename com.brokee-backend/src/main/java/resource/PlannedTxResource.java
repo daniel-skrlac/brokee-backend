@@ -1,7 +1,6 @@
 package resource;
 
 import io.quarkus.security.Authenticated;
-import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
@@ -45,20 +44,20 @@ public class PlannedTxResource {
 
     @GET
     public Response list(
-            @QueryParam("page")     Integer   page,
-            @QueryParam("size")     Integer   size,
-            @QueryParam("title")    String    title,
-            @QueryParam("dueFrom")  String    dueFromStr,
-            @QueryParam("dueTo")    String    dueToStr,
-            @QueryParam("type")     String    type,
-            @QueryParam("min")      Double    minAmount,
-            @QueryParam("max")      Double    maxAmount,
-            @QueryParam("category") String    categoryName
+            @QueryParam("page") Integer page,
+            @QueryParam("size") Integer size,
+            @QueryParam("title") String title,
+            @QueryParam("dueFrom") String dueFromStr,
+            @QueryParam("dueTo") String dueToStr,
+            @QueryParam("type") String type,
+            @QueryParam("min") Double minAmount,
+            @QueryParam("max") Double maxAmount,
+            @QueryParam("category") String categoryName
     ) {
         LocalDate dueFrom = null, dueTo = null;
         try {
             if (dueFromStr != null) dueFrom = LocalDate.parse(dueFromStr);
-            if (dueToStr   != null) dueTo   = LocalDate.parse(dueToStr);
+            if (dueToStr != null) dueTo = LocalDate.parse(dueToStr);
         } catch (DateTimeParseException ex) {
             return Response.status(BAD_REQUEST)
                     .entity(ServiceResponseDirector.errorBadRequest("Invalid date format"))
@@ -91,6 +90,7 @@ public class PlannedTxResource {
                     .build();
         }
     }
+
     @GET
     @Path("{id}")
     public Response getOne(@PathParam("id") Long id) {
@@ -101,7 +101,7 @@ public class PlannedTxResource {
     }
 
     @POST
-    public Response create(@Valid PlannedTxRequestDTO dto, @Context UriInfo uriInfo) {
+    public Response create(@Valid PlannedTxRequestDTO dto) {
         ServiceResponseDTO<PlannedTxResponseDTO> resp = service.create(securityUtils.getCurrentUser(), dto);
         return Response.status(resp.getStatusCode()).entity(resp).build();
     }

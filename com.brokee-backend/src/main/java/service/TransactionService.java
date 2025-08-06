@@ -241,68 +241,80 @@ public class TransactionService {
     }
 
     @Transactional
-    public ServiceResponseDTO<TxResponseDTO> create(String userSub, FullTxRequestDTO dto) {
+    public ServiceResponseDTO<TxResponseDTO> create(String userSub,
+                                                    FullTxRequestDTO dto) {
+
+        // ───────── persist the new transaction ─────────
         Transaction t = txMap.fullRequestToEntity(dto);
         t.setUserSub(userSub);
         t.persist();
 
+        /* resolve reverse-geocoded label (unchanged) */
         t.setLocationName(locationService.getLocationName(
                 t.getLatitude().doubleValue(),
-                t.getLongitude().doubleValue()
-        ));
+                t.getLongitude().doubleValue()));
         t.persist();
 
-        if (t.getType().equals("E") &&
-                t.getAmount().compareTo(new BigDecimal("1000.00")) > 0 &&
-                (t.getNote() == null || t.getNote().isBlank())) {
+        /* ───────── optional notifications ───────── */
+        if ("E".equals(t.getType())
+                && t.getAmount().compareTo(new BigDecimal("1000.00")) > 0
+                && (t.getNote() == null || t.getNote().isBlank())) {
 
             String catName = categoryRepository.findCategoryNameById(t.getCategoryId());
             notifier.sendToUser(
                     userSub,
                     "💸 Large Transaction",
-                    "Large transaction detected: " + t.getAmount() + " on " + catName + "."
-            );
+                    "Large transaction detected: " + t.getAmount() + " on " + catName + '.');
         }
 
-        LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
-        BigDecimal spent = txRepo.sumExpensesForCategorySince(userSub, t.getCategoryId(), startOfMonth);
-        BigDecimal budget = budgetRepository.findAmountByUserAndCategory(userSub, t.getCategoryId());
+        LocalDate monthStart = LocalDate.now().withDayOfMonth(1);
+        BigDecimal spent = txRepo.sumExpensesForCategorySince(
+                userSub, t.getCategoryId(), monthStart);
+
+
+        BigDecimal budget = budgetRepository
+                .findAmountByUserAndCategory(userSub, t.getCategoryId());
+
         if (budget != null && spent.compareTo(budget) > 0) {
             String catName = categoryRepository.findCategoryNameById(t.getCategoryId());
             notifier.sendToUser(
                     userSub,
                     "🚨 Budget Exceeded",
-                    "You've exceeded your " + catName + " budget!"
-            );
+                    "You've exceeded your " + catName + " budget!");
         }
 
-        return ServiceResponseDirector.successCreated(
-                txMap.entityToResponse(t),
-                "Successfully Created"
-        );
+        return ServiceResponseDirector
+                .successCreated(txMap.entityToResponse(t), "Successfully Created");
     }
 
     @Transactional
     public ServiceResponseDTO<TxResponseDTO> update(
-            String userSub,
-            Long id,
-            FullTxRequestDTO dto
-    ) {
+            String userSub, Long id, FullTxRequestDTO dto) {
+
         Transaction t = txRepo.findByIdAndUser(userSub, id);
         if (t == null) {
             return ServiceResponseDirector.errorNotFound("Transaction not found");
         }
+
         txMap.updateFromFullDto(dto, t);
-        t.setLocationName(locationService.getLocationName(
-                t.getLatitude().doubleValue(),
-                t.getLongitude().doubleValue()
-        ));
+
+        if (dto.latitude() != null && dto.longitude() != null) {
+            t.setLocationName(
+                    locationService.getLocationName(
+                            dto.latitude().doubleValue(),
+                            dto.longitude().doubleValue())
+            );
+        } else {
+            t.setLocationName(null);
+        }
+
+        t.persistAndFlush();
+
         return ServiceResponseDirector.successOk(
-                txMap.entityToResponse(t),
-                "Successfully Updated"
-        );
+                txMap.entityToResponse(t), "Successfully Updated");
     }
 
+    @Transactional
     public ServiceResponseDTO<Boolean> delete(String userSub, Long id) {
         boolean deleted = txRepo.deleteByIdAndUser(userSub, id);
         if (!deleted) {
