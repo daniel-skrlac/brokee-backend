@@ -304,6 +304,8 @@ public class TransactionService {
                             dto.latitude().doubleValue(),
                             dto.longitude().doubleValue())
             );
+            t.setLatitude(dto.latitude());
+            t.setLongitude(dto.longitude());
         } else {
             t.setLocationName(null);
         }
