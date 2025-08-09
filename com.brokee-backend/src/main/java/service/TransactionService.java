@@ -37,6 +37,8 @@ import java.util.stream.Collectors;
 @ApplicationScoped
 public class TransactionService {
 
+    private static final BigDecimal LARGE_TX_THRESHOLD = new BigDecimal("1000.00");
+
     @Inject
     LocationService locationService;
 
@@ -230,67 +232,47 @@ public class TransactionService {
     @Transactional
     public ServiceResponseDTO<TxResponseDTO> quickAdd(String userSub, QuickTxRequestDTO dto) {
         Transaction t = txMap.quickRequestToEntity(dto);
+
         if (dto.categoryId() == null) {
             Optional<Category> category = categoryRepository.findByName("General");
             category.ifPresent(value -> t.setCategoryId(value.getId()));
         }
+
         t.setUserSub(userSub);
         t.persist();
+
+        checkAndNotify(userSub, t);
+
         return ServiceResponseDirector.successCreated(
                 txMap.entityToResponse(t), "Successfully Created");
     }
 
     @Transactional
-    public ServiceResponseDTO<TxResponseDTO> create(String userSub,
-                                                    FullTxRequestDTO dto) {
-
-        // ───────── persist the new transaction ─────────
+    public ServiceResponseDTO<TxResponseDTO> create(String userSub, FullTxRequestDTO dto) {
         Transaction t = txMap.fullRequestToEntity(dto);
         t.setUserSub(userSub);
         t.persist();
 
-        /* resolve reverse-geocoded label (unchanged) */
-        t.setLocationName(locationService.getLocationName(
-                t.getLatitude().doubleValue(),
-                t.getLongitude().doubleValue()));
-        t.persist();
-
-        /* ───────── optional notifications ───────── */
-        if ("E".equals(t.getType())
-                && t.getAmount().compareTo(new BigDecimal("1000.00")) > 0
-                && (t.getNote() == null || t.getNote().isBlank())) {
-
-            String catName = categoryRepository.findCategoryNameById(t.getCategoryId());
-            notifier.sendToUser(
-                    userSub,
-                    "💸 Large Transaction",
-                    "Large transaction detected: " + t.getAmount() + " on " + catName + '.');
+        String locationName = null;
+        if (t.getLatitude() != null && t.getLongitude() != null) {
+            try {
+                locationName = locationService.getLocationName(
+                        t.getLatitude().doubleValue(),
+                        t.getLongitude().doubleValue()
+                );
+            } catch (Exception ignored) {
+            }
         }
+        t.setLocationName(locationName);
 
-        LocalDate monthStart = LocalDate.now().withDayOfMonth(1);
-        BigDecimal spent = txRepo.sumExpensesForCategorySince(
-                userSub, t.getCategoryId(), monthStart);
-
-
-        BigDecimal budget = budgetRepository
-                .findAmountByUserAndCategory(userSub, t.getCategoryId());
-
-        if (budget != null && spent.compareTo(budget) > 0) {
-            String catName = categoryRepository.findCategoryNameById(t.getCategoryId());
-            notifier.sendToUser(
-                    userSub,
-                    "🚨 Budget Exceeded",
-                    "You've exceeded your " + catName + " budget!");
-        }
+        checkAndNotify(userSub, t);
 
         return ServiceResponseDirector
                 .successCreated(txMap.entityToResponse(t), "Successfully Created");
     }
 
     @Transactional
-    public ServiceResponseDTO<TxResponseDTO> update(
-            String userSub, Long id, FullTxRequestDTO dto) {
-
+    public ServiceResponseDTO<TxResponseDTO> update(String userSub, Long id, FullTxRequestDTO dto) {
         Transaction t = txRepo.findByIdAndUser(userSub, id);
         if (t == null) {
             return ServiceResponseDirector.errorNotFound("Transaction not found");
@@ -312,6 +294,8 @@ public class TransactionService {
 
         t.persistAndFlush();
 
+        checkAndNotify(userSub, t);
+
         return ServiceResponseDirector.successOk(
                 txMap.entityToResponse(t), "Successfully Updated");
     }
@@ -324,4 +308,32 @@ public class TransactionService {
         }
         return ServiceResponseDirector.successOk(true, "Successfully Deleted");
     }
+
+    private void checkAndNotify(String userSub, Transaction t) {
+        if (!"E".equals(t.getType())) return; // only care about expenses
+
+        if (t.getAmount() != null && t.getAmount().compareTo(LARGE_TX_THRESHOLD) > 0) {
+            String catName = categoryRepository.findCategoryNameById(t.getCategoryId());
+            notifier.sendToUser(
+                    userSub,
+                    "💸 Large Transaction",
+                    "Large transaction detected: " + t.getAmount() + " on " + catName + '.'
+            );
+        }
+
+        LocalDate monthStart = LocalDate.now().withDayOfMonth(1);
+        BigDecimal spent = txRepo.sumExpensesForCategorySince(userSub, t.getCategoryId(), monthStart);
+        if (spent == null) spent = BigDecimal.ZERO;
+
+        BigDecimal budget = budgetRepository.findAmountByUserAndCategory(userSub, t.getCategoryId());
+        if (budget != null && spent.compareTo(budget) > 0) {
+            String catName = categoryRepository.findCategoryNameById(t.getCategoryId());
+            notifier.sendToUser(
+                    userSub,
+                    "🚨 Budget Exceeded",
+                    "You've exceeded your " + catName + " budget!"
+            );
+        }
+    }
+
 }

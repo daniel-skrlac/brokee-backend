@@ -60,7 +60,7 @@ public class GoalAndReminderNotificationScheduler {
                 .divide(BigDecimal.valueOf(daysLeft), 2, RoundingMode.HALF_UP);
 
         if (requiredDaily.compareTo(SAVINGS_DAILY_REQUIRED_THRESHOLD) > 0) {
-            notifier.sendToUser(
+            notifier.sendToExternalId(
                     userSub,
                     "🎯 Savings Goal at Risk",
                     "You're falling behind on your savings goal."
@@ -76,7 +76,7 @@ public class GoalAndReminderNotificationScheduler {
 
         for (PlannedTx tx : upcoming) {
             String catName = categoryRepo.findCategoryNameById(tx.getCategoryId());
-            notifier.sendToUser(
+            notifier.sendToExternalId(
                     userSub,
                     "🕒 Upcoming Planned Payment",
                     "Your planned payment for " + catName + " (" + tx.getTitle() + ") is due on " + tx.getDueDate() + "."

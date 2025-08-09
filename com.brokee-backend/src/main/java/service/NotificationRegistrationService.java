@@ -13,7 +13,7 @@ public class NotificationRegistrationService {
 
     @Transactional
     public void registerPlayerId(String userSub, String playerId) {
-        repo.saveOrUpdate(userSub, playerId);
+        repo.upsert(userSub, playerId);
     }
 
     @Transactional
