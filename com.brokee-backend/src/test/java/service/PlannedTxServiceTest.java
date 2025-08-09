@@ -144,7 +144,6 @@ class PlannedTxServiceTest {
         req.title = "T";
         req.amount = new BigDecimal("10.00");
         req.dueDate = LocalDate.now();
-        req.autoBook = true;
 
         PlannedTx entity = new PlannedTx();
         when(map.requestToEntity(req)).thenReturn(entity);
@@ -156,7 +155,6 @@ class PlannedTxServiceTest {
         dto.title = req.title;
         dto.amount = req.amount;
         dto.dueDate = req.dueDate;
-        dto.autoBook = req.autoBook;
 
         when(map.entityToResponse(entity)).thenReturn(dto);
 
@@ -180,7 +178,6 @@ class PlannedTxServiceTest {
         req.title = "X";
         req.amount = new BigDecimal("1.00");
         req.dueDate = LocalDate.now();
-        req.autoBook = true;
 
         var res = svc.update("u", 5L, req);
 
@@ -202,7 +199,6 @@ class PlannedTxServiceTest {
         req.title = "New";
         req.amount = new BigDecimal("2.00");
         req.dueDate = LocalDate.now();
-        req.autoBook = false;
 
         doAnswer(inv -> {
             PlannedTxRequestDTO r = inv.getArgument(0);
@@ -211,7 +207,6 @@ class PlannedTxServiceTest {
             target.setCategoryId(r.categoryId);
             target.setAmount(r.amount);
             target.setType(r.type);
-            target.setAutoBook(r.autoBook);
             target.setDueDate(r.dueDate);
             return null;
         }).when(map).updateFromDto(eq(req), eq(e));

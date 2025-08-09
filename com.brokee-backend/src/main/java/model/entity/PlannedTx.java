@@ -48,7 +48,4 @@ public class PlannedTx extends PanacheEntityBase {
 
     @Column(name = "due_date", nullable = false)
     private LocalDate dueDate;
-
-    @Column(name = "auto_book", nullable = false)
-    private Boolean autoBook;
 }

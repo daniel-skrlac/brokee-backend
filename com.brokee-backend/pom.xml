@@ -147,6 +147,11 @@
             <version>1.34.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-smallrye-openapi</artifactId>
+        </dependency>
+
         <!-- Testing: Quarkus + Mockito + RestAssured + AssertJ -->
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -227,6 +232,23 @@
                         <exclude>**/security/**</exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>12.1.0</version>
+                <configuration>
+                    <nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
+                    <nvdApiDelay>${env.NVD_API_DELAY}</nvdApiDelay>
+                    <dataDirectory>${project.build.directory}/dependency-check-data</dataDirectory>
+                    <connectionTimeout>120000</connectionTimeout>
+                    <readTimeout>120000</readTimeout>
+                    <failOnError>true</failOnError>
+                </configuration>
+                <executions>
+                    <execution><goals><goal>check</goal></goals></execution>
+                </executions>
             </plugin>
 
             <!-- TypeScript generator -->

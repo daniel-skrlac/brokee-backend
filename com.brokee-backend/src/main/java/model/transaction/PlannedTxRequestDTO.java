@@ -25,6 +25,4 @@ public class PlannedTxRequestDTO {
 
     @NotNull
     public LocalDate dueDate;
-
-    public Boolean autoBook;
 }

@@ -273,14 +273,6 @@ public class TransactionService {
 
     @Transactional
     public ServiceResponseDTO<TxResponseDTO> update(String userSub, Long id, FullTxRequestDTO dto) {
-        System.out.println("DEBUG:");
-
-        notifier.sendToUser(
-                userSub,
-                "💸 Large Transaction",
-                "Large transaction detected: "
-        );
-
         Transaction t = txRepo.findByIdAndUser(userSub, id);
         if (t == null) {
             return ServiceResponseDirector.errorNotFound("Transaction not found");
@@ -318,7 +310,6 @@ public class TransactionService {
     }
 
     private void checkAndNotify(String userSub, Transaction t) {
-        System.out.println("DEBUG: type=" + t.getType() + ", amount=" + t.getAmount() + ", categoryId=" + t.getCategoryId());
         if (!"E".equals(t.getType())) return;
 
         if (t.getAmount() != null && t.getAmount().compareTo(LARGE_TX_THRESHOLD) > 0) {

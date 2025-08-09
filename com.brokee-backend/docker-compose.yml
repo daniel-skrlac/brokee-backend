@@ -34,7 +34,9 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:23.0
-    command: start-dev
+    command:
+      - start-dev
+      - --import-realm
     environment:
       KC_DB: postgres
       KC_DB_URL_HOST: keycloak-db
@@ -60,18 +62,11 @@ services:
       POSTGRES_DB: sonarqube
     volumes:
       - sonar-db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U sonar -d sonarqube"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    restart: unless-stopped
 
   sonarqube:
-    image: sonarqube:lts-community
+    image: sonarqube:10.6.0-community
     depends_on:
-      sonar-db:
-        condition: service_healthy
+      - sonar-db
     ports:
       - "9000:9000"
     environment:
@@ -87,7 +82,48 @@ services:
         soft: 131072
         hard: 131072
       nproc: 8192
-    restart: unless-stopped
+
+  quarkus:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:sqlserver://mssql:1433;databaseName=brokee;encrypt=true;trustServerCertificate=true
+      QUARKUS_DATASOURCE_USERNAME: sa
+      QUARKUS_DATASOURCE_PASSWORD: Str0ng!P@ssw0rd!
+      QUARKUS_OIDC_AUTH_SERVER_URL: http://keycloak:8080/realms/brokee
+      QUARKUS_OIDC_CLIENT_ID: brokee-frontend
+      QUARKUS_HTTP_HOST: 0.0.0.0
+    depends_on:
+      - mssql-init
+      - keycloak
+    volumes:
+      - ./wait-for-it.sh:/app/wait-for-it.sh
+      - ./wait-for-keycloak.sh:/app/wait-for-keycloak.sh
+    entrypoint: ["sh", "-c", "./wait-for-it.sh mssql:1433 && ./wait-for-keycloak.sh http://keycloak:8080/realms/brokee/.well-known/openid-configuration java -jar /app/quarkus-run.jar"]
+
+  schemathesis:
+    build:
+      context: .
+      dockerfile: Dockerfile-schemathesis
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      REALM: "brokee"
+      BASE_URL: "http://quarkus:8080"
+      OPENAPI_URL: "http://quarkus:8080/q/openapi?format=json"
+      KEYCLOAK_BASE: "http://keycloak:8080"
+      CLIENT_ID: "brokee-frontend"
+      USERNAME: "dskrlac"
+      PASSWORD: "DSkrlac-2805"
+    volumes:
+      - ./wait-and-run.sh:/wait-and-run.sh
+      - ./reports:/reports
+    entrypoint: ["sh", "/wait-and-run.sh"]
+    depends_on:
+      - quarkus
 
 volumes:
   keycloak-db-data:
