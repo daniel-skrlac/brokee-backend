@@ -1,0 +1,4 @@
+Usage: schemathesis run [OPTIONS] LOCATION
+Try 'schemathesis run -h' for help.
+
+Error: No such option: --validate-schema Did you mean --wait-for-schema?

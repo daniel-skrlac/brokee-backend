@@ -1,0 +1,20 @@
+Schemathesis v4.0.24
+━━━━━━━━━━━━━━━━━━━━
+
+
+ ✅  Loaded specification from http://quarkus:8080/q/openapi?format=json (in    
+ 0.38s)                                                                         
+
+     Base URL:         http://quarkus:8080                                      
+     Specification:    Open API 3.1.0                                           
+     Operations:       36 selected / 36 total                                   
+
+
+ ✅  API capabilities:                                                          
+
+     Supports NULL byte in headers:    ✘                                        
+
+ ❌  Examples (in 5.99s)                                                        
+                                                                                
+     ❌  7 failed  ⏭  29 skipped                                                
+
