@@ -1,0 +1,107 @@
+$green: #27ae60;
+$red: #e74c3c;
+
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+
+  .day-name {
+    font-size: .75rem;
+    text-align: center;
+    color: #666
+  }
+
+  .cell {
+    min-height: 88px;
+    background: #f8f9fc;
+    border-radius: 8px;
+    position: relative;
+    padding: 22px 2px 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    &.other {
+      opacity: .35
+    }
+
+    &:hover {
+      background: #eaf2ff
+    }
+
+    .num {
+      position: absolute;
+      top: 4px;
+      left: 6px;
+      font-size: .7rem;
+      color: #333
+    }
+
+    .mini {
+      all: unset;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 4px;
+      gap: 4px;
+      font-size: .64rem;
+      line-height: 1.4;
+      border-radius: 4px;
+      background: #ffffff;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: background .15s;
+
+      &.income {
+        border-color: $green;
+        color: $green;
+      }
+
+      &.expense {
+        border-color: $red;
+        color: $red;
+      }
+
+      &:hover {
+        background: #f1f5ff
+      }
+
+      .title {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .amt {
+        font-weight: 600;
+      }
+    }
+
+    .more {
+      all: unset;
+      align-self: center;
+      padding: 0 6px;
+      font-size: .66rem;
+      line-height: 1.5;
+      background: #dfe6ff;
+      border-radius: 8px;
+      cursor: pointer;
+
+      &:hover {
+        background: #cddbff
+      }
+    }
+  }
+
+  .cell.today {
+    outline: 2px solid #4a90e2;
+    background: #eef6ff;
+  }
+
+  .mini.past {
+    opacity: .55;
+    text-decoration: line-through;
+  }
+
+}

@@ -1,6 +1,0 @@
-FROM ghcr.io/schemathesis/schemathesis:stable
-USER root
-RUN apk add --no-cache curl jq
-RUN mkdir -p /reports
-RUN chmod 777 /reports
-USER root

@@ -1,0 +1,780 @@
+$form-bg : var(--form-bg, #ffffff);
+$form-bg-light : var(--form-bg-light, #f7f9fb);
+$form-text : var(--form-text, #222222);
+$form-border : var(--form-border, #d7dce2);
+$form-placeholder: var(--form-placeholder, #9ba3af);
+$backdrop : var(--backdrop, rgba(0, 0, 0, .6));
+$shadow : var(--shadow, 0 8px 32px rgba(0, 0, 0, .25));
+$border-light : var(--border-light, #e5eaf0);
+$border : var(--border, #c9d0d9);
+$text : var(--text, #222);
+
+.tracking {
+  padding: 16px;
+  background: var(--bg);
+  min-height: 100vh;
+  padding-bottom: calc(56px + 24px + 16px);
+
+  h1 {
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+
+  .cluster-map-section {
+    h2 {
+      font-size: 1.2rem;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    .cluster-map {
+      width: 100%;
+      height: 300px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+  }
+
+  section.card.map-section {
+    background: var(--form-bg);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 16px;
+    margin-bottom: 24px;
+
+    h2 {
+      font-size: 1.2rem;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    .no-data {
+      padding: 40px 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    #clusterMap {
+      width: 100% !important;
+      height: 300px !important;
+      position: relative;
+      transform: none !important;
+    }
+
+    .map-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+      padding: 0 8px;
+      gap: 8px;
+
+      button {
+        background-color: var(--primary);
+        color: #fff;
+        border: none;
+        padding: 6px 0;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        width: 100px;
+        text-align: center;
+
+        &:hover {
+          background-color: var(--primary);
+        }
+      }
+
+      span {
+        flex-grow: 1;
+        text-align: center;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text);
+      }
+    }
+  }
+
+  section.card.funnel-section {
+    background: var(--form-bg);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 16px;
+    margin-bottom: 24px;
+    height: 300px;
+    position: relative;
+
+    h2 {
+      font-size: 1.2rem;
+      margin-bottom: 16px;
+      color: var(--text);
+      text-align: left;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: calc(100% - 40px) !important;
+    }
+  }
+
+  .settings__header {
+    display: flex;
+    margin-bottom: 8px;
+
+    .btn-back {
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      color: var(--text);
+      cursor: pointer;
+    }
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0 0 24px;
+    color: var(--text);
+  }
+
+  .kpi-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+
+    .kpi-card {
+      flex: 1;
+      background: var(--form-bg);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+      text-align: center;
+
+      .value {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: var(--primary);
+      }
+
+      .label {
+        margin-top: 4px;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+      }
+    }
+  }
+
+  section.card.chart-section.rolling-avg {
+    background: var(--form-bg);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 12px;
+    margin-bottom: 24px;
+    height: 250px;
+    position: relative;
+    overflow: hidden;
+
+    h2 {
+      font-size: 1.2rem;
+      margin: 0 0 8px;
+      color: var(--text);
+    }
+
+    canvas {
+      width: 100% !important;
+      height: calc(100% - 32px) !important;
+    }
+  }
+
+
+  section.card.chart-section:not(.rolling-avg) {
+    background: var(--glass);
+    backdrop-filter: blur(6px);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 16px;
+    margin-bottom: 24px;
+
+    h2 {
+      font-size: 1.2rem;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    canvas {
+      width: 100% !important;
+      max-height: 240px;
+    }
+  }
+
+  .calendar-heatmap {
+    background: var(--form-bg);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 16px;
+    margin-bottom: 24px;
+
+    h2 {
+      font-size: 1.2rem;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    .heatmap-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+
+      .day {
+        position: relative;
+        padding-top: 100%;
+        border-radius: 4px;
+        background: var(--border);
+
+        &.level-1 {
+          background: #d0eaff;
+        }
+
+        &.level-2 {
+          background: #a0d4ff;
+        }
+
+        &.level-3 {
+          background: #70beff;
+        }
+
+        &.level-4 {
+          background: #40a8ff;
+        }
+
+        &.level-5 {
+          background: #108fff;
+        }
+      }
+    }
+
+    .weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 8px;
+    }
+  }
+
+
+  section.card.gauge-section {
+    background: var(--form-bg);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 16px;
+    margin-bottom: 24px;
+    text-align: center;
+
+    h2 {
+      text-align: left;
+      margin-left: 0;
+      font-size: 1.2rem;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    .gauge-wrapper {
+      position: relative;
+      width: 400px;
+      height: 200px;
+      margin: 0 auto;
+
+      canvas {
+        width: 100% !important;
+        height: 100% !important;
+      }
+
+      .gauge-center {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+
+        .gauge-value {
+          font-size: 1.6rem;
+          font-weight: 600;
+          color: var(--primary);
+        }
+
+        .gauge-label {
+          font-size: 0.75rem;
+          color: var(--text-muted);
+        }
+      }
+    }
+  }
+
+  section.card.bullet-section {
+    background: var(--form-bg);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 16px;
+    margin-bottom: 24px;
+
+    h2 {
+      font-size: 1.2rem;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    .bullet-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+
+      li {
+        display: grid;
+        grid-template-columns: 100px 1fr auto;
+        column-gap: 12px;
+        align-items: center;
+        margin-bottom: 12px;
+
+        .bullet-label {
+          font-size: 0.85rem;
+          color: var(--text-muted);
+        }
+
+        .bullet-bar {
+          position: relative;
+          height: 8px;
+          background: var(--border);
+          border-radius: 4px;
+          overflow: hidden;
+
+          .budget-rail {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: var(--glass);
+          }
+
+          .actual-bar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: var(--primary);
+          }
+        }
+
+        .bullet-values {
+          font-size: 0.75rem;
+          color: var(--text-muted);
+
+          .val-actual {
+            font-weight: 600;
+            color: var(--text);
+          }
+        }
+      }
+    }
+  }
+
+  .crypto-btn {
+    position: fixed;
+    bottom: calc(56px + 24px);
+    right: 24px;
+    width: 56px;
+    height: 56px;
+    background: var(--primary);
+    border: none;
+    border-radius: 50%;
+    box-shadow: var(--shadow);
+    color: #fff;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1001;
+
+    &:hover {
+      transform: translateY(-2px);
+      transition: transform 0.2s;
+    }
+  }
+
+
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .crypto-modal,
+  .modal.crypto-modal {
+    background: var(--form-bg);
+    color: var(--form-text);
+
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+
+  .modal-backdrop {
+    background: rgba(0, 0, 0, 0.75);
+  }
+
+  .crypto-modal h2 {
+    color: var(--text);
+    font-size: 1.3rem;
+    margin-bottom: 16px;
+  }
+
+  .crypto-modal ul li {
+    color: var(--text);
+  }
+
+  .modal-actions button {
+    background: var(--primary);
+    color: #fff;
+  }
+
+  .binance-table {
+    th {
+      background: var(--glass);
+      color: var(--text);
+      border-bottom: 2px solid var(--border);
+    }
+
+    td {
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+    }
+
+    td.positive {
+      color: var(--primary);
+    }
+
+    td.negative {
+      color: var(--red);
+    }
+  }
+
+  .trade-table {
+
+    th,
+    td {
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .buyer {
+      color: var(--primary);
+    }
+
+    .seller {
+      color: var(--red);
+    }
+  }
+
+  .btn-back {
+    color: var(--text);
+  }
+
+  .modal-actions {
+    text-align: right;
+    margin-top: 16px;
+
+    button {
+      background: #4a90e2;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+
+      &:hover {
+        transform: translateY(-2px);
+        transition: transform 0.2s;
+      }
+    }
+  }
+}
+
+main.tracking {
+  padding-bottom: 60px;
+}
+
+:host ::ng-deep {
+
+  #clusterMap {
+    width: 100% !important;
+    height: 300px !important;
+    position: relative !important;
+  }
+
+  #clusterMap .leaflet-map-pane,
+  #clusterMap .leaflet-zoom-animated,
+  #clusterMap .leaflet-tile-pane,
+  #clusterMap .leaflet-marker-pane,
+  #clusterMap .leaflet-shadow-pane,
+  #clusterMap .leaflet-overlay-pane {
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    transition: none !important;
+  }
+}
+
+.crypto-btn.binance-btn {
+  right: 90px;
+  background: #f3ba2f;
+
+  img {
+    width: 24px;
+    height: 24px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.modal.crypto-modal {
+  max-width: 500px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--form-bg);
+  color: var(--form-text);
+
+  h2 {
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .modal__subtitle {
+    margin: 0 0 16px;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .modal-body {
+    overflow-y: auto;
+    flex: 1;
+    padding-right: 8px;
+  }
+
+  .binance-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+
+    th,
+    td {
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .positive {
+      color: var(--primary);
+    }
+
+    .negative {
+      color: var(--red);
+    }
+  }
+
+  .modal-actions {
+    margin-top: 8px;
+    text-align: right;
+  }
+}
+
+.crypto-btn.binance-btn {
+  position: fixed;
+  bottom: calc(56px + 24px);
+  right: 90px;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  background: var(--red);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.2s;
+
+  img {
+    display: block;
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--backdrop);
+  z-index: 1000;
+
+  overflow: hidden;
+}
+
+.crypto-modal.scrollable {
+  background: var(--form-bg);
+  border-radius: var(--radius);
+  width: 90%;
+  max-width: 400px;
+  max-height: 80vh;
+  margin: auto;
+  overflow-y: auto;
+  padding: 16px;
+  box-shadow: var(--shadow);
+  position: relative;
+}
+
+.btn-back {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.crypto-modal.scrollable h2 {
+  margin-top: 24px;
+}
+
+.binance-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+
+  th,
+  td {
+    padding: 8px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+
+  th {
+    background: var(--glass);
+    font-weight: 600;
+  }
+
+  td.positive {
+    color: var(--primary);
+  }
+
+  td.negative {
+    color: var(--red);
+  }
+}
+
+.binance-btn img {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.trade-row>td {
+  padding: 0;
+  background: var(--glass);
+}
+
+.trade-header {
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 8px;
+  background: var(--glass);
+  border-bottom: 1px solid var(--border);
+}
+
+.trade-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+
+  th,
+  td {
+    padding: 4px 6px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+
+  th {
+    background: var(--glass);
+    font-weight: 600;
+  }
+
+  .buyer {
+    color: var(--primary);
+  }
+
+  .seller {
+    color: var(--red);
+  }
+
+  .no-trades {
+    text-align: center;
+    padding: 8px;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+}
+
+.btn-x {
+  all: unset;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  background: $form-bg-light;
+  border: 1px solid $form-border;
+  border-radius: 50%;
+  font-size: 20px;
+  line-height: 1;
+  text-align: center;
+  cursor: pointer;
+  transition: background .2s;
+
+  &:hover {
+    background: $form-bg;
+  }
+}
+
+#clusterMap .leaflet-marker-pane,
+#clusterMap .leaflet-shadow-pane,
+#clusterMap .leaflet-overlay-pane {
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}

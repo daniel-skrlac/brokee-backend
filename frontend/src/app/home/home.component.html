@@ -1,0 +1,190 @@
+<main class="home">
+  <!-- HEADER -->
+  <header class="home__header">
+    <div class="home__header-top">
+      <div class="home__profile card--frosted">
+        <img src="assets/images/avatar.png" class="home__avatar" alt="Avatar" />
+        <div class="home__profile-info">
+          <h1 class="home__greeting">Hey, {{ userName }}!</h1>
+          <p class="home__date">{{ today | date:'dd MMM yyyy' }}</p>
+        </div>
+      </div>
+      <button class="home__btn-settings" routerLink="/settings">
+        ⚙️
+      </button>
+
+    </div>
+    <div class="home__wave"></div>
+  </header>
+
+  <!-- BALANCE SUMMARY -->
+  <section class="home__summary">
+    <div class="card card--glass">
+      <div class="card__label">Balance</div>
+      <div class="card__value">{{ balance | currency }}</div>
+    </div>
+
+    <div class="card card--glass">
+      <div class="card__label">Budget Used</div>
+      <div class="card__value">{{ budgetUsedPercent }}%</div>
+      <div class="progress">
+        <div class="progress__bar" [style.width.%]="budgetUsedPercent"></div>
+      </div>
+    </div>
+
+    <div class="card card--glass">
+      <div class="card__label">Scheduled</div>
+      <div class="card__value">{{ upcomingCount }}</div>
+      <small>upcoming bills</small>
+    </div>
+  </section>
+
+  <!-- CHART + CONTROLS -->
+  <section class="home__chart">
+    <div class="segmented-control-buttons">
+      <button (click)="toggleView('byday')" [class.active]="viewMode==='byday'">By Day</button>
+      <button (click)="toggleView('daily')" [class.active]="viewMode==='daily'">Daily</button>
+      <button (click)="toggleView('monthly')" [class.active]="viewMode==='monthly'">Monthly</button>
+    </div>
+
+    <div *ngIf="viewMode==='byday'" class="date-picker-inline">
+      <input class="date-input" type="date" [value]="selectedDay | date:'yyyy-MM-dd'"
+        (change)="onDayChange($event.target.value)" />
+    </div>
+
+    <div class="card card--glass chart-card">
+      <canvas baseChart *ngIf="!loadingChart" [data]="chartData" [options]="chartOptions" chartType="line">
+      </canvas>
+      <p *ngIf="loadingChart" class="loading">Loading chart…</p>
+      <p *ngIf="chartError" class="error">{{ chartError }}</p>
+    </div>
+  </section>
+
+  <!-- ACTION BUTTONS -->
+  <section class="home__actions">
+    <button class="action-btn" (click)="openQuick()">
+      <span class="icon">📝</span><span class="label">Add</span>
+    </button>
+    <button class="action-btn" (click)="openQr()">
+      <span class="icon">📷</span><span class="label">Scan QR</span>
+    </button>
+    <button class="action-btn" (click)="openCash()">
+      <span class="icon">💵</span><span class="label">Scan Cash</span>
+    </button>
+  </section>
+
+  <!-- RECENT ACTIVITY -->
+  <section class="home__history">
+    <h2>Recent Activity</h2>
+    <ul>
+      <li *ngFor="let tx of recentTx" [ngClass]="{ expense: tx.type==='E', income: tx.type==='I' }">
+        <div class="tx__info">
+          <span class="tx__icon">
+            {{ tx.type==='I' ? '➕':'➖' }}
+          </span>
+          <div class="tx__details">
+            <strong class="tx__desc">{{ tx.note }}</strong>
+            <small class="tx__category">
+              {{ getCategoryName(tx.categoryId) }}
+            </small>
+            <small class="tx__timestamp">
+              {{ tx.txTime | date:'dd MMM yyyy, HH:mm' }}
+            </small>
+          </div>
+        </div>
+        <div class="tx__amount" [class.negative]="tx.amount<0">
+          {{ tx.amount | currency }}
+        </div>
+      </li>
+
+    </ul>
+  </section>
+
+  <!-- ── QUICK‑ADD MODAL ── -->
+  <div class="modal-backdrop" *ngIf="showQuickModal">
+    <div class="modal">
+      <h2>Quick Add</h2>
+      <div class="field">
+        <label for="quick-amount">Amount</label>
+        <input id="quick-amount" type="number" [(ngModel)]="quickTx.amount" />
+      </div>
+      <div class="field">
+        <label for="quick-type">Type</label>
+        <select id="quick-type" [(ngModel)]="quickTx.type">
+          <option value="E">Expense</option>
+          <option value="I">Income</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button type="button" (click)="showQuickModal=false">Cancel</button>
+        <button type="button" (click)="saveQuick()" [disabled]="quickTx.amount<=0">
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── QR‑SCAN MODAL ── -->
+  <div class="modal-backdrop" *ngIf="showQrModal">
+    <div class="modal modal--scanner">
+      <h2>Scan QR</h2>
+      <zxing-scanner [formats]="allowedFormats" (scanSuccess)="onQrResult($event)">
+      </zxing-scanner>
+      <div class="scan-info">
+        <p *ngIf="!qrText">Waiting for QR…</p>
+        <p *ngIf="qrText">Raw: {{ qrText }}</p>
+        <p *ngIf="extractedPrice!==null">Price: €{{ extractedPrice }}</p>
+      </div>
+      <div class="field">
+        <label>Category</label>
+        <select [(ngModel)]="qrCategoryId">
+          <option [ngValue]="null">Select…</option>
+          <option *ngFor="let c of categories" [ngValue]="c.id">
+            {{ c.name }}
+          </option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button (click)="showQrModal=false">Cancel</button>
+        <button (click)="saveQr()" [disabled]="extractedPrice==null||qrCategoryId==null">
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CASH‑SCAN MODAL ── -->
+  <div class="modal-backdrop" *ngIf="showCashModal">
+    <div class="modal modal--scanner">
+      <h2>Scan Cash</h2>
+      <video #cashVideo autoplay muted playsinline></video>
+
+      <div class="scan-info">
+        <p *ngIf="recognizedValue === null">
+          Looking for banknote…
+        </p>
+        <p *ngIf="recognizedValue !== null">
+          Detected: €{{ recognizedValue }}
+        </p>
+        <button *ngIf="recognizedValue !== null && !ocrRunning" (click)="restartOCR()" class="retry-btn">
+          🔄 Retry Scan
+        </button>
+      </div>
+
+      <div class="field">
+        <label for="cash-type">Type</label>
+        <select id="cash-type" [(ngModel)]="cashType">
+          <option value="E">Expense</option>
+          <option value="I">Income</option>
+        </select>
+      </div>
+
+      <div class="modal-actions">
+        <button (click)="closeCash()">Cancel</button>
+        <button (click)="saveCash()" [disabled]="recognizedValue === null">
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+</main>

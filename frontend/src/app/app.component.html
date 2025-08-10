@@ -1,0 +1,22 @@
+<router-outlet></router-outlet>
+
+<app-notifications></app-notifications>
+
+<nav class="bottom-nav card--glass">
+
+  <a routerLink="/transaction" routerLinkActive="active" class="nav-item">
+    <i class="material-icons icon">list_alt</i>
+    <span class="label">Transactions</span>
+  </a>
+
+  <a routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item home">
+    <i class="material-icons icon">home</i>
+    <span class="label">Home</span>
+  </a>
+
+  <a routerLink="/tracking" routerLinkActive="active" class="nav-item">
+    <i class="material-icons icon">show_chart</i>
+    <span class="label">Tracking</span>
+  </a>
+
+</nav>
