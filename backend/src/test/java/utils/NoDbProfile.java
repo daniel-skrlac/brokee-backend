@@ -5,6 +5,11 @@ import java.util.Map;
 
 public class NoDbProfile implements QuarkusTestProfile {
     @Override
+    public String getConfigProfile() {
+        return "no-db";
+    }
+
+    @Override
     public Map<String, String> getConfigOverrides() {
         return Map.of(
                 "quarkus.http.test-port", "0",
@@ -15,5 +20,4 @@ public class NoDbProfile implements QuarkusTestProfile {
                 "quarkus.scheduler.enabled", "false"
         );
     }
-
 }

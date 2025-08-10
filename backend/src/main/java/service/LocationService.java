@@ -11,6 +11,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 @ApplicationScoped
 public class LocationService {
 
+    @Inject
     @RestClient
     GeocodeClient geocode;
 

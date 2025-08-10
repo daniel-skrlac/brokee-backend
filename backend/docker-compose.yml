@@ -20,7 +20,8 @@ services:
           echo 'Waiting for SQL Server to be ready...'
           sleep 2
         done &&
-        /opt/mssql-tools/bin/sqlcmd -S mssql -U sa -P 'Str0ng!P@ssw0rd!' -Q \"IF DB_ID('brokee') IS NULL CREATE DATABASE brokee\"
+        /opt/mssql-tools/bin/sqlcmd -S mssql -U sa -P 'Str0ng!P@ssw0rd!' -Q \"IF DB_ID('brokee') IS NULL CREATE DATABASE brokee\" &&
+        /opt/mssql-tools/bin/sqlcmd -S mssql -U sa -P 'Str0ng!P@ssw0rd!' -Q \"IF DB_ID('brokee_test') IS NULL CREATE DATABASE brokee_test\"
       "
 
   keycloak-db:
