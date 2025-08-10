@@ -246,6 +246,7 @@
                 </executions>
                 <configuration>
                     <excludes>
+                        <exclude>**/repository/**</exclude>
                         <exclude>**/model/**</exclude>
                         <exclude>**/*Mapper*.class</exclude>
                         <exclude>**/security/**</exclude>
@@ -293,7 +294,7 @@
                             <classPatterns>
                                 <param>**.*DTO</param>
                             </classPatterns>
-                            <outputFile>/home/daniel/Desktop/frontend/brokee-frontend/frontend/src/app/api/dtos.d.ts
+                            <outputFile>../frontend/src/app/api/dtos.d.ts
                             </outputFile>
                         </configuration>
                     </execution>
