@@ -16,9 +16,6 @@ export class PlannedTxService {
 
     constructor(private http: HttpClient) { }
 
-    /** ----------------------------------------------------------------
-     *  LIST (un-paged)  – pass what you need, leave the rest `null`
-     *  ---------------------------------------------------------------- */
     list(
         title?: string, dueFrom?: string, dueTo?: string,
         type?: string, min?: number, max?: number, cat?: string
@@ -36,7 +33,6 @@ export class PlannedTxService {
         return this.http.get<ServiceResponseDTO<PlannedTxResponseDTO[]>>(this.base, { params: p });
     }
 
-    /** paged list – same filters plus page/size */
     page(
         page = 0,
         size = 20,
@@ -46,7 +42,6 @@ export class PlannedTxService {
             .set('page', page)
             .set('size', size);
 
-        // reuse list()’s arg mapping
         const tmp = new HttpParams();
         const [title, from, to, type, min, max, cat] = sameArgs;
         if (title) p = p.set('title', title);
@@ -63,7 +58,6 @@ export class PlannedTxService {
         );
     }
 
-    /** CRUD ---------------------------------------------------------- */
     create(dto: PlannedTxRequestDTO) {
         return this.http.post<ServiceResponseDTO<PlannedTxResponseDTO>>(
             this.base,

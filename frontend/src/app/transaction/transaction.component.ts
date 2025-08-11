@@ -395,7 +395,6 @@ export class TransactionComponent implements OnInit {
         title: this.editForm.title,
         amount: +this.editForm.amount,
         dueDate: new Date(this.editForm.date) as any,
-        autoBook: false,
       };
       this.handleSave(
         this.planApi.update(+this.editForm.id, dto),
@@ -451,7 +450,6 @@ export class TransactionComponent implements OnInit {
         title: this.editForm.title,
         amount: +this.editForm.amount,
         dueDate: new Date(this.editForm.date) as any,
-        autoBook: false
       };
       this.handleSave(this.planApi.create(dto), () => this.afterSave(), 'Planned item added');
     }

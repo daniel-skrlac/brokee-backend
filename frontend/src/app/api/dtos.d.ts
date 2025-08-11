@@ -1,6 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
-// Generated using typescript-generator version 3.2.1263 on 2025-08-09 21:41:12.
+// Generated using typescript-generator version 3.2.1263 on 2025-08-10 20:13:29.
 
 export interface AccountSummaryDTO {
     topHoldings: HoldingDTO[];
@@ -226,7 +226,6 @@ export interface PlannedTxRequestDTO {
     title: string;
     amount: number;
     dueDate: Date;
-    autoBook: boolean;
 }
 
 export interface PlannedTxResponseDTO {
