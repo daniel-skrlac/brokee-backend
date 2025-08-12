@@ -96,16 +96,19 @@ services:
       QUARKUS_DATASOURCE_JDBC_URL: jdbc:sqlserver://mssql:1433;databaseName=brokee;encrypt=true;trustServerCertificate=true
       QUARKUS_DATASOURCE_USERNAME: sa
       QUARKUS_DATASOURCE_PASSWORD: Str0ng!P@ssw0rd!
-      QUARKUS_OIDC_AUTH_SERVER_URL: http://keycloak:8080/realms/brokee
+      # Quarkus now talks to host's Keycloak via host.docker.internal
+      QUARKUS_OIDC_AUTH_SERVER_URL: http://host.docker.internal:8081/realms/brokee
       QUARKUS_OIDC_CLIENT_ID: brokee-frontend
       QUARKUS_HTTP_HOST: 0.0.0.0
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - mssql-init
       - keycloak
     volumes:
       - ./wait-for-it.sh:/app/wait-for-it.sh
       - ./wait-for-keycloak.sh:/app/wait-for-keycloak.sh
-    entrypoint: [ "sh", "-c", "./wait-for-it.sh mssql:1433 && ./wait-for-keycloak.sh http://keycloak:8080/realms/brokee/.well-known/openid-configuration java -jar /app/quarkus-run.jar" ]
+    entrypoint: [ "sh", "-c", "./wait-for-it.sh mssql:1433 && ./wait-for-keycloak.sh http://host.docker.internal:8081/realms/brokee/.well-known/openid-configuration java -jar /app/quarkus-run.jar" ]
 
   frontend:
     build:

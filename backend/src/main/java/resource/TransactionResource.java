@@ -78,7 +78,6 @@ public class TransactionResource {
                 .build();
     }
 
-
     @GET
     @Path("/balance")
     public Response balance() {
