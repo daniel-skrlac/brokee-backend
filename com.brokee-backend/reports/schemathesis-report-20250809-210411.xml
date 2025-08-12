@@ -1,4 +1,0 @@
-Usage: schemathesis run [OPTIONS] LOCATION
-Try 'schemathesis run -h' for help.
-
-Error: No such option: --hypothesis-suppress-health-check Did you mean --suppress-health-check?
