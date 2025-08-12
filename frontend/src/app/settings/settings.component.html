@@ -8,12 +8,6 @@
   <section class="card">
     <h2 class="card__title">Preferences</h2>
     <div class="field">
-      <label>Currency</label>
-      <select [(ngModel)]="currency" (ngModelChange)="prefsChanged = true">
-        <option *ngFor="let c of currencies" [value]="c">{{c}}</option>
-      </select>
-    </div>
-    <div class="field">
       <label>Theme</label>
       <select [(ngModel)]="theme" (ngModelChange)="prefsChanged = true">
         <option *ngFor="let t of themes" [value]="t">{{t | titlecase}}</option>

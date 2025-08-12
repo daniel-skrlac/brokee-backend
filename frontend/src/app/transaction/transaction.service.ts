@@ -17,15 +17,35 @@ export class TransactionService {
 
     constructor(private http: HttpClient) { }
 
-    /** ----------------------------------------------------------------
-     *  PAGED LIST (optionally filtered)
-     *  ---------------------------------------------------------------- */
-    page(page = 0, size = 100): Observable<ServiceResponseDTO<PagedResponseDTO<TxResponseDTO>>> {
-        const params = new HttpParams().set('page', page).set('size', size);
+    page(
+        page = 0,
+        size = 10,
+        opts?: {
+            type?: 'expense' | 'income' | 'E' | 'I';
+            min?: number;
+            max?: number;
+            from?: string;
+            to?: string;
+            note?: string;
+            category?: string;
+        }
+    ): Observable<ServiceResponseDTO<PagedResponseDTO<TxResponseDTO>>> {
+        let params = new HttpParams().set('page', page).set('size', size);
+
+        if (opts) {
+            const t = opts.type === 'expense' ? 'E' : opts.type === 'income' ? 'I' : opts.type;
+            if (t) params = params.set('type', t);
+            if (opts.min != null) params = params.set('min', opts.min);
+            if (opts.max != null) params = params.set('max', opts.max);
+            if (opts.from) params = params.set('dueFrom', opts.from);
+            if (opts.to) params = params.set('dueTo', opts.to);
+            if (opts.note) params = params.set('note', opts.note);
+            if (opts.category) params = params.set('category', opts.category);
+        }
+
         return this.http.get<ServiceResponseDTO<PagedResponseDTO<TxResponseDTO>>>(this.base, { params });
     }
 
-    /** five most-recent */
     recent(limit = 5): Observable<ServiceResponseDTO<TxResponseDTO[]>> {
         const params = new HttpParams().set('limit', limit);
         return this.http.get<ServiceResponseDTO<TxResponseDTO[]>>(
@@ -33,8 +53,6 @@ export class TransactionService {
             { params },
         );
     }
-
-    /** create / update / delete ------------------------------------------------ */
 
     create(dto: FullTxRequestDTO) {
         return this.http.post<ServiceResponseDTO<TxResponseDTO>>(this.base, dto);

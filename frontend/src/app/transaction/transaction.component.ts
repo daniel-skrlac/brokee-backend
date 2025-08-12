@@ -61,13 +61,12 @@ export class TransactionComponent implements OnInit {
   theme: 'light' | 'dark' = "light";
 
   private _mode: 'list' | 'calendar' = 'list';
-  set mode(m: 'list' | 'calendar') {
-    this._mode = m;
-    this.currentPage = 0;
-    this.recalcView();
-  }
   get mode() { return this._mode; }
   setMode(m: 'list' | 'calendar') { this.mode = m; }
+
+
+  calendarItems: UITransaction[] = [];
+  private lastCalendarKey = '';
 
   private items: UITransaction[] = [];
   viewTx: UITransaction[] = [];
@@ -75,6 +74,7 @@ export class TransactionComponent implements OnInit {
 
   readonly size = 10;
   currentPage = 0;
+  private lastFilterKey = '';
   private filteredPages = 1;
   private totalPages = 1;
 
@@ -91,6 +91,8 @@ export class TransactionComponent implements OnInit {
   editForm: any = {}; loadingEdit = false;
 
   categories: CategoryResponseDTO[] = [];
+
+  private lastQueryKey = '';
 
   @ViewChild('pdfInput') pdfInput!: ElementRef<HTMLInputElement>;
 
@@ -117,7 +119,37 @@ export class TransactionComponent implements OnInit {
         this.recalcView();
       });
 
+    this.lastFilterKey = this.computeFilterKey();
     this.fetchPage(0);
+    this.loadCalendarMonth();
+  }
+
+  set mode(m: 'list' | 'calendar') {
+    this._mode = m;
+    this.currentPage = 0;
+    if (m === 'calendar') {
+      this.loadCalendarMonth();
+    } else {
+      this.recalcView();
+    }
+  }
+
+  private loadCalendarMonth(forDate: Date = new Date()): void {
+    const start = new Date(forDate.getFullYear(), forDate.getMonth(), 1);
+    const end = new Date(forDate.getFullYear(), forDate.getMonth() + 1, 0);
+    const from = format(start, 'yyyy-MM-dd');
+    const to = format(end, 'yyyy-MM-dd');
+
+    const key = `${from}:${to}`;
+    this.lastCalendarKey = key;
+
+    this.planApi.list(undefined, from, to)
+      .pipe(catchError(() => of({ data: [] } as any)))
+      .subscribe(resp => {
+        if (this.lastCalendarKey !== key) return;
+        this.calendarItems = (resp.data ?? []).map(this.mapPlanned).filter(Boolean);
+        if (this.mode === 'calendar') this.recalcView();
+      });
   }
 
   private handleSave(
@@ -136,29 +168,64 @@ export class TransactionComponent implements OnInit {
     });
   }
 
+  private computeFilterKey(): string {
+    return JSON.stringify({
+      q: (this.searchTxt || '').trim().toLowerCase(),
+      f: this.f,
+      recurring: this.f.recurring
+    });
+  }
+
+  onFiltersChanged(): void {
+    const next = this.computeFilterKey();
+    if (next === this.lastFilterKey) return;
+    this.lastFilterKey = next;
+    this.currentPage = 0;
+    this.fetchFiltered(0);
+  }
+
   private catName(id?: number | null) {
     return this.categories.find(c => c.id === id)?.name ?? 'General';
   }
 
   fetchPage(page: number) {
-    this.currentPage = page;
-    const month = new Date().toISOString().slice(0, 7);
-    const from = `${month}-01`, to = `${month}-31`;
+    this.fetchFiltered(page);
+  }
 
-    combineLatest({
-      tx: this.txApi.page(page, this.size)
-        .pipe(catchError(() => of({ data: { items: [], total: 0 } } as any))),
-      plan: this.planApi.list(undefined, from, to)
-        .pipe(catchError(() => of({ data: [] } as any)))
-    }).subscribe(({ tx, plan }) => {
-      const reg = (tx.data?.items ?? []).map(this.mapRegular);
-      const pla = (plan.data ?? []).map(this.mapPlanned);
-      this.items = [...reg, ...pla]
-        .filter(Boolean)
-        .sort((a, b) => +b.date - +a.date);
-      this.totalPages = Math.max(1, Math.ceil((tx.data?.total ?? 0) / this.size));
-      this.recalcView();
+  private fetchFiltered(page: number) {
+    this.currentPage = page;
+
+    const qKey = JSON.stringify({
+      page,
+      q: (this.searchTxt || '').trim(),
+      f: this.f,
+      recurring: this.f.recurring
     });
+    this.lastQueryKey = qKey;
+
+    if (this.f.recurring) {
+      const args = this.buildPlannedQueryArgs();
+      this.planApi.page(page, this.size, ...args)
+        .pipe(catchError(() => of({ data: { items: [], total: 0 } } as any)))
+        .subscribe(resp => {
+          if (qKey !== this.lastQueryKey) return;
+          const list = (resp.data?.items ?? []).map(this.mapPlanned).filter(Boolean);
+          this.items = list;
+          this.totalPages = Math.max(1, Math.ceil((resp.data?.total ?? 0) / this.size));
+          this.recalcView();
+        });
+    } else {
+      const opts = this.buildTxQueryOpts();
+      this.txApi.page(page, this.size, opts)
+        .pipe(catchError(() => of({ data: { items: [], total: 0 } } as any)))
+        .subscribe(resp => {
+          if (qKey !== this.lastQueryKey) return;
+          const list = (resp.data?.items ?? []).map(this.mapRegular).filter(Boolean);
+          this.items = list;
+          this.totalPages = Math.max(1, Math.ceil((resp.data?.total ?? 0) / this.size));
+          this.recalcView();
+        });
+    }
   }
 
   private mapRegular = (t: TxResponseDTO): UITransaction => {
@@ -204,52 +271,86 @@ export class TransactionComponent implements OnInit {
 
   recalcView(): void {
     if (this.mode === 'calendar') {
-      const mStart = startOfMonth(new Date());
-      this.viewTx = this.items.filter(
-        t => t.planned && isSameMonth(t.date, mStart)
-      );
+      this.viewTx = this.calendarItems;
+    } else {
+      const pageItems = this.f.recurring ? this.items.filter(t => t.planned)
+        : this.items.filter(t => !t.planned);
+      this.viewTx = pageItems;
+      this.groups = pageItems.reduce((m, t) => {
+        const k = startOfDay(t.date).toDateString();
+        (m[k] ??= []).push(t);
+        return m;
+      }, {} as Record<string, UITransaction[]>);
     }
-
-    else {
-      const { type, from, to, min, max, recurring } = this.f;
-      const q = this.searchTxt.toLowerCase();
-
-      const filtered = this.items.filter(t => {
-        if (q && ![t.category, t.note].some(v => v?.toLowerCase().includes(q)))
-          return false;
-        if (type && t.type !== type) return false;
-        if ((from && t.date < new Date(from)) ||
-          (to && t.date > new Date(to)))
-          return false;
-        if ((min != null && t.amount < min) ||
-          (max != null && t.amount > max))
-          return false;
-        if (recurring && !t.planned) return false;
-        if (!recurring && t.planned) return false;
-        return true;
-      });
-
-      if (this.filtersActive) {
-        this.filteredPages = Math.max(1, Math.ceil(filtered.length / this.size));
-        if (this.currentPage >= this.filteredPages) this.currentPage = 0;
-        const start = this.currentPage * this.size;
-        this.viewTx = filtered.slice(start, start + this.size);
-      } else {
-        this.filteredPages = 1;
-        this.viewTx = filtered;
-      }
-    }
-
-    this.groups = this.viewTx.reduce((m, t) => {
-      const k = startOfDay(t.date).toDateString();
-      (m[k] ??= []).push(t);
-      return m;
-    }, {} as Record<string, UITransaction[]>);
   }
 
-  get displayPages() {
-    return this.filtersActive ? this.filteredPages : this.totalPages;
+  private buildTxQueryOpts() {
+    const { type, from, to, min, max } = this.f;
+    const qRaw = (this.searchTxt || '').trim();
+
+    const opts: {
+      type?: 'expense' | 'income' | 'E' | 'I';
+      min?: number; max?: number;
+      from?: string; to?: string;
+      note?: string; category?: string;
+    } = {};
+
+    const rawType = type?.toLowerCase();
+    if (rawType === 'expense') opts.type = 'expense';
+    else if (rawType === 'income') opts.type = 'income';
+
+    if (min != null) opts.min = min;
+    if (max != null) opts.max = max;
+    if (from) opts.from = new Date(from + 'T00:00:00Z').toISOString();
+    if (to) opts.to = new Date(to + 'T23:59:59.999Z').toISOString();
+
+    if (qRaw) {
+      const catHit = this.categories.find(c => c.name.toLowerCase().includes(qRaw.toLowerCase()));
+      if (catHit) opts.category = catHit.name;
+      else opts.note = qRaw;
+    }
+    return opts;
   }
+
+  private buildPlannedQueryArgs(): Parameters<PlannedTxService['list']> {
+    const { type, from, to, min, max } = this.f;
+    const qRaw = (this.searchTxt || '').trim();
+
+    let typeParam: string | undefined;
+    const rawType = type?.toLowerCase();
+    if (rawType === 'expense') typeParam = 'E';
+    else if (rawType === 'income') typeParam = 'I';
+
+    let title: string | undefined;
+    let cat: string | undefined;
+    if (qRaw) {
+      const catHit = this.categories.find(c => c.name.toLowerCase().includes(qRaw.toLowerCase()));
+      if (catHit) cat = catHit.name; else title = qRaw;
+    }
+
+    return [
+      title,
+      from || undefined,
+      to || undefined,
+      typeParam,
+      min ?? undefined,
+      max ?? undefined,
+      cat
+    ];
+  }
+
+  get displayPages() { return this.totalPages; }
+
+  nextPage() {
+    if (this.currentPage + 1 >= this.totalPages) return;
+    this.fetchFiltered(this.currentPage + 1);
+  }
+  prevPage() {
+    if (this.currentPage === 0) return;
+    this.fetchFiltered(this.currentPage - 1);
+  }
+
+
   get groupKeys() {
     return Object.keys(this.groups)
       .sort((a, b) => +new Date(b) - +new Date(a));
@@ -258,38 +359,18 @@ export class TransactionComponent implements OnInit {
   clearFilters() {
     this.searchTxt = '';
     this.f = { type: '', from: '', to: '', min: null, max: null, recurring: false };
-    this.currentPage = 0;
-    this.recalcView();
+    this.onFiltersChanged();
   }
 
   handleDatePick(d: Date) {
     const from = startOfDay(d);
     this.f.from = format(from, 'yyyy-MM-dd');
     this.f.to = format(addDays(from, 1), 'yyyy-MM-dd');
+
     this.currentPage = 0;
     this.mode = 'list';
-  }
 
-  nextPage() {
-    if (this.currentPage + 1 >= this.displayPages) return;
-
-    if (this.filtersActive) {
-      this.currentPage++;
-      this.recalcView();
-    } else {
-      this.fetchPage(this.currentPage + 1);
-    }
-  }
-
-  prevPage() {
-    if (this.currentPage === 0) return;
-
-    if (this.filtersActive) {
-      this.currentPage--;
-      this.recalcView();
-    } else {
-      this.fetchPage(this.currentPage - 1);
-    }
+    this.onFiltersChanged();
   }
 
   openView(t: UITransaction) { this.selected = { ...t }; this.modalMode = 'view'; }
@@ -330,6 +411,7 @@ export class TransactionComponent implements OnInit {
       open(
         {
           id: t.id.slice(2),
+          planned: true,
           type: t.type,
           amount: t.amount,
           categoryId: t.categoryId,
@@ -343,6 +425,7 @@ export class TransactionComponent implements OnInit {
       open(
         {
           id: t.id,
+          planned: false,
           type: t.type,
           amount: t.amount,
           categoryId: t.categoryId,
@@ -357,6 +440,7 @@ export class TransactionComponent implements OnInit {
         open(
           {
             id: String(full.id),
+            planned: false,
             type: full.type === 'E' ? 'expense' : 'income',
             amount: +full.amount,
             categoryId: full.categoryId,
@@ -369,9 +453,6 @@ export class TransactionComponent implements OnInit {
     }
   }
 
-  /* ----------------------------------------------------------------- *
-   * saveEdit — never attempts to read or send GPS coordinates.
-   * ----------------------------------------------------------------- */
   async saveEdit(frm: NgForm): Promise<void> {
     if (frm.invalid) return;
 
@@ -407,6 +488,7 @@ export class TransactionComponent implements OnInit {
   addTx() {
     this.modalMode = 'newTx';
     this.editForm = {
+      planned: false,
       type: 'expense', amount: 0, categoryId: null,
       date: new Date().toISOString().slice(0, 16),
       note: '', useGeo: false,
@@ -417,6 +499,7 @@ export class TransactionComponent implements OnInit {
   addPlanned() {
     this.modalMode = 'newPlan';
     this.editForm = {
+      planned: true,
       type: 'expense', amount: 0, categoryId: null,
       title: '', date: new Date().toISOString().slice(0, 10),
       note: '', useGeo: false,

@@ -35,27 +35,23 @@ export class PlannedTxService {
 
     page(
         page = 0,
-        size = 20,
+        size = 10,
         ...sameArgs: Parameters<PlannedTxService['list']>
     ): Observable<ServiceResponseDTO<PagedResponseDTO<PlannedTxResponseDTO>>> {
         let p = new HttpParams()
-            .set('page', page)
-            .set('size', size);
+            .set('page', String(page))
+            .set('size', String(size));
 
-        const tmp = new HttpParams();
         const [title, from, to, type, min, max, cat] = sameArgs;
         if (title) p = p.set('title', title);
         if (from) p = p.set('dueFrom', from);
         if (to) p = p.set('dueTo', to);
         if (type) p = p.set('type', type);
-        if (min != null) p = p.set('min', min);
-        if (max != null) p = p.set('max', max);
+        if (min != null) p = p.set('min', String(min));
+        if (max != null) p = p.set('max', String(max));
         if (cat) p = p.set('category', cat);
 
-        return this.http.get<ServiceResponseDTO<PagedResponseDTO<PlannedTxResponseDTO>>>(
-            this.base,
-            { params: p },
-        );
+        return this.http.get<ServiceResponseDTO<PagedResponseDTO<PlannedTxResponseDTO>>>(this.base, { params: p });
     }
 
     create(dto: PlannedTxRequestDTO) {

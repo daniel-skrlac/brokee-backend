@@ -13,22 +13,24 @@
 
   <!-- ───── filters ───── -->
   <section class="filters card--glass" *ngIf="mode==='list'">
-    <input class="search" placeholder="Search…" [(ngModel)]="searchTxt" (input)="recalcView()">
+    <input class="search" [(ngModel)]="searchTxt" (input)="onFiltersChanged()">
     <div class="grid">
       <div class="field">
         <label>Type</label>
-        <select [(ngModel)]="f.type" (change)="recalcView()">
+        <select [(ngModel)]="f.type" (change)="onFiltersChanged()">
           <option value="">All</option>
           <option value="expense">Expense</option>
           <option value="income">Income</option>
         </select>
       </div>
-      <div class="field"><label>From</label><input type="date" [(ngModel)]="f.from" (change)="recalcView()"></div>
-      <div class="field"><label>To</label><input type="date" [(ngModel)]="f.to" (change)="recalcView()"></div>
-      <div class="field"><label>Min €</label><input type="number" [(ngModel)]="f.min" (input)="recalcView()"></div>
-      <div class="field"><label>Max €</label><input type="number" [(ngModel)]="f.max" (input)="recalcView()"></div>
+      <div class="field"><label>From</label><input type="date" [(ngModel)]="f.from" (change)="onFiltersChanged()"></div>
+      <div class="field"><label>To</label><input type="date" [(ngModel)]="f.to" (change)="onFiltersChanged()"></div>
+      <div class="field"><label>Min €</label><input type="number" [(ngModel)]="f.min" (input)="onFiltersChanged()">
+      </div>
+      <div class="field"><label>Max €</label><input type="number" [(ngModel)]="f.max" (input)="onFiltersChanged()">
+      </div>
       <div class="field toggle">
-        <label><input type="checkbox" [(ngModel)]="f.recurring" (change)="recalcView()"> Recurring</label>
+        <label><input type="checkbox" [(ngModel)]="f.recurring" (change)="onFiltersChanged()"> Recurring</label>
       </div>
       <button class="btn-reset" (click)="clearFilters()">Reset</button>
     </div>
@@ -43,9 +45,9 @@
   <!-- ───── list view ───── -->
   <section class="tx-list" *ngIf="mode==='list'">
     <nav class="pagination" *ngIf="displayPages>1">
-      <button (click)="prevPage()" [disabled]="currentPage===0">◀</button>
+      <button type="button" (click)="prevPage()" [disabled]="currentPage===0">◀</button>
       <span>Page {{currentPage+1}} / {{displayPages}}</span>
-      <button (click)="nextPage()" [disabled]="currentPage+1>=displayPages">▶</button>
+      <button type="button" (click)="nextPage()" [disabled]="currentPage+1>=displayPages">▶</button>
     </nav>
 
     <ng-container *ngFor="let day of groupKeys">
@@ -164,7 +166,11 @@
         </div>
 
         <!-- NOTE -->
-        <textarea *ngIf="modalMode!=='quickEdit'" name="note" [(ngModel)]="editForm.note" placeholder="Note"></textarea>
+        <!-- NOTE (never for planned, never for quickEdit) -->
+        <textarea *ngIf="!editForm?.planned && modalMode!=='quickEdit'" name="note" [(ngModel)]="editForm.note"
+          placeholder="Note">
+</textarea>
+
 
         <div class="modal-actions">
           <button type="button" (click)="closeModal()">Cancel</button>

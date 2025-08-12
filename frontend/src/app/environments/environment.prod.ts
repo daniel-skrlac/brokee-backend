@@ -4,6 +4,8 @@ export const environment = {
   keycloak: {
     url: 'http://localhost:8081',
     realm: 'brokee',
-    clientId: 'brokee-frontend'
-  }
+    clientId: 'brokee-frontend',
+    user: 'dskrlac',
+    password: "DSkrlac-2805"
+  },
 };

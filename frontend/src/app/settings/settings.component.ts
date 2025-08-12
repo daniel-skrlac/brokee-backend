@@ -46,9 +46,6 @@ export class SettingsComponent implements OnInit {
   theme: 'light' | 'dark' = 'light';
   prefsChanged = false;
 
-  readonly currencies = ['EUR', 'USD'] as const;
-  currency: 'EUR' | 'USD' = 'EUR';
-
   userName = '';
   userEmail = '';
 
@@ -92,9 +89,6 @@ export class SettingsComponent implements OnInit {
 
   ngOnInit(): void {
     this.theme = this.themeService.initTheme();
-    const savedCur = localStorage.getItem('user-currency') as 'EUR' | 'USD' | null;
-    if (savedCur && this.currencies.includes(savedCur)) { this.currency = savedCur; }
-
     this.categoryApi.listAll().subscribe({
       next: r => {
         if (r.success) {
@@ -247,7 +241,6 @@ export class SettingsComponent implements OnInit {
 
   savePrefs(): void {
     this.themeService.setTheme(this.theme);
-    localStorage.setItem('user-currency', this.currency);
     this.prefsChanged = false;
     this.notifications.notify('Preferences saved', 'success');
   }
